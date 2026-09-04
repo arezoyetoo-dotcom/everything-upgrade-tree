@@ -61,6 +61,51 @@
 
 ---
 
+## 🔮 Prestige Reset Layer & 29 Canon Prestige Nodes (#1p – #29p)
+
+Once architects accumulate at least **10 Quindecillion Points (10 Qd₽ = $10^{49}$ Points)**, reality can be collapsed into **Prestige Points (₹)**. Resetting wipes current Points and Research progress (while strictly preserving all permanent baseplate unlocks, achievements, player leveling ranks, and prestige tree purchases) to fuel immense dimensional growth.
+
+### 🌀 Prestige Reset Mechanics
+- **Reset Requirement:** $10^{49}$ ₽ (10 Quindecillion Points).
+- **Formula:** $\lfloor (\text{Points} / 10^{49})^{0.2} \rfloor \times (\text{#10p Multipliers}) \times (\text{#15p Bit Boost}) \times (\text{#19p Challenge Boost})$.
+- **Dedicated Prestige Baseplate:** Real-time dimensional collapse progress tracker, dynamic requirement alert, filter chips (*All*, *Multipliers*, *Permanent*, *Advanced*, *Endgame*), and one-click purchase / Buy Max controls.
+
+### 📜 Full 29 Canon Prestige Upgrades
+
+| Node | Name | Base Cost | Type | Effect & Mechanics |
+|---|---|---|---|---|
+| **#1p** | the challenge | 250 ₹ | Permanent | Unlocks the **Mystic Obelisk** to embark on reality trials and challenges. |
+| **#2p** | rocket shot | 0.05 ₹ | Multi-Level | **+1× ₽ (Points)** and **+0.5× λ (Research)** gain per level. |
+| **#3p** | to new heights | Free | Permanent | Expands the primary points constellation tree with higher branches. |
+| **#4p** | duping IQ | 3 ₹ | Multi-Level | Multiplies λ gained by **×2 compounding per level**. |
+| **#5p** | fast and furious | Free | Permanent | Point upgrades now **"buy max"** instantly when clicked. |
+| **#6p** | angelic researchers | 2.5 ₹ | Multi-Level | Generates **1% of λ gain per second** passively without clicking. |
+| **#7p** | different variations | 10 ₹ | Permanent | Unlocks the **Level Transformer** system. |
+| **#8p** | 2UP! | 300 ₹ | Multi-Level | **×2 compounding XP** earned on every click. |
+| **#9p** | incremental dream | 7.5 ₹ | Permanent | Unlocks the **Automation Baseplate** to automate node purchasing. |
+| **#10p** | generic filler | 20 ₹ | Multi-Level | **×2 compounding** to both **₹ (Prestige)** and **₽ (Points)** gain per level. |
+| **#11p** | unlazy scientists | 10,000 ₹ | Permanent | Unlocks an advanced tier of scientific research upgrades. |
+| **#12p** | level 999,999 | 25,000 ₹ | Permanent | Unlocks additional architect level milestones. |
+| **#13p** | ultra rocket shot | 50 ₹ | Multi-Level | **+2× ₽ (Points)** gain compounding per level. |
+| **#14p** | deflation | 50,000 ₹ | Multi-Level | Point upgrade costs permanently reduced by **5% compounding per level**. |
+| **#15p** | megabits | 35,000,000 ฿ | Multi-Level | ₹ (Prestige Points) gain is boosted by **Bits (฿)**. |
+| **#16p** | to be continued | 5,000,000 ₹ | Permanent | Unlocks secondary mystical challenges in the Obelisk. |
+| **#17p** | the darkening | 500,000 ₹ | Permanent | Unlocks the **Point-X (₽X) Dark Matter Baseplate**. |
+| **#18p** | noxious efficiency | 50,000,000 ₹ | Multi-Level | **+0.01** to ₽X (Point-X) gain exponent per level. |
+| **#19p** | no pain no gain | 50,000 ₹ | Multi-Level | **×1.15 ₹ gain** for every challenge successfully conquered. |
+| **#20p** | deeper flows | 1,000,000,000 ₹ | Multi-Level | **+0.04** to AXP (Astral XP) gain exponent per level. |
+| **#21p** | supermassive upgrade | 10,000,000,000 ₹ | Multi-Level | **×2.5 compounding ☉ (Sun)** stellar gain per level. |
+| **#22p** | beyond balancing | 1,000,000,000,000 ₹ | Multi-Level | **^1.5 exponent** applied to total XP gain after all multipliers. |
+| **#23p** | point production | 5,000,000,000,000 ₹ | Multi-Level | Enhances the **Point Deduction** boost formula. |
+| **#24p** | point reduction | 10,000,000,000 ₹ | Permanent | Mitigates and reduces the Point Deduction penalty debuff. |
+| **#25p** | seed of light | 2,500 ₹ | Multi-Level | Dramatically improves the first level milestone reward formula. |
+| **#26p** | speciation of science | $10^{28}$ ₹ (10 Octillion) | Multi-Level | Amplifies the **Extinction of Science** cosmic boost factor. |
+| **#27p** | time dilation | $10^{26}$ ₹ (100 Septillion) | Multi-Level | **-1s cooldown** on Point-X active abilities per level. |
+| **#28p** | prominence | $10^{25}$ ₹ (10 Septillion) | Multi-Level | Enhances the fourth level milestone formula. |
+| **#29p** | heavenly timewall | $10^{100}$ ₹ (10 DTg) | Multi-Level | **×2τ compounding Transcend Points**. Cost halves every second spent in current transcension! |
+
+---
+
 ## 🎛️ Interactive Centers & Baseplates
 
 1. **📻 Boombox Audio Deck (#9):**

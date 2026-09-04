@@ -51,6 +51,7 @@ function startApp() {
   const navTabs = document.querySelectorAll('.nav-tab-btn');
   const viewPanels = {
     tree: document.getElementById('treeView'),
+    prestige: document.getElementById('prestigeOverlay'),
     boombox: document.getElementById('boomboxOverlay'),
     leveling: document.getElementById('levelingOverlay'),
     donation: document.getElementById('donationOverlay'),
@@ -81,6 +82,8 @@ function startApp() {
 
     if (tabKey === 'tree') {
       canvasRenderer.render();
+    } else if (tabKey === 'prestige') {
+      renderPrestigeView();
     } else if (tabKey === 'boombox') {
       renderBoomboxView();
     } else if (tabKey === 'leveling') {
@@ -110,6 +113,7 @@ function startApp() {
     });
   });
 
+  window.switchTab = switchTab;
   // Global Baseplate Opening Handlers for Tree Clicks
   window.openBoomboxModal = () => switchTab('boombox');
   window.openLevelingModal = () => switchTab('leveling');
@@ -146,6 +150,14 @@ function startApp() {
     const tabRecords = document.getElementById('tabRecords');
     if (tabRecords) tabRecords.style.display = engine.upgrades['node_20'] ? 'inline-flex' : 'none';
 
+    const tabPrestige = document.getElementById('tabPrestige');
+    if (tabPrestige) {
+      const showPrestige = (engine.stats.prestiges > 0) ||
+                           engine.currencies.prestige.gt(0) ||
+                           engine.currencies.matter.gte(D(1, 46));
+      tabPrestige.style.display = showPrestige ? 'inline-flex' : 'none';
+    }
+
     if (miniBoomboxWidget) {
       miniBoomboxWidget.style.display = engine.upgrades['node_9'] ? 'flex' : 'none';
     }
@@ -163,7 +175,7 @@ function startApp() {
     if (tabAstronomy) tabAstronomy.style.display = engine.upgrades['portal_astronomy'] ? 'inline-flex' : 'none';
 
     const tabChallenges = document.querySelector('.nav-tab-btn[data-tab="challenges"]');
-    if (tabChallenges) tabChallenges.style.display = engine.upgrades['portal_challenges'] ? 'inline-flex' : 'none';
+    if (tabChallenges) tabChallenges.style.display = (engine.upgrades['node_1p'] || engine.upgrades['portal_challenges']) ? 'inline-flex' : 'none';
   }
 
   // -------------------------------------------------------------
@@ -972,12 +984,35 @@ ${pulled.desc}`);
   const prestigeGainPreview = document.getElementById('prestigeGainPreview');
   const confirmPrestigeBtn = document.getElementById('confirmPrestigeBtn');
   const closePrestigeBtn = document.getElementById('closePrestigeBtn');
+  const modalPrestigeProgressPct = document.getElementById('modalPrestigeProgressPct');
+  const modalPrestigeProgressBar = document.getElementById('modalPrestigeProgressBar');
+  const modalPrestigeCurPoints = document.getElementById('modalPrestigeCurPoints');
+  const openPrestigeBaseplateBtn = document.getElementById('openPrestigeBaseplateBtn');
 
   window.openPrestigeModal = function() {
-    const gain = engine.calculatePrestigeGain ? engine.calculatePrestigeGain() : D(1);
+    const can = engine.canPrestige ? engine.canPrestige() : false;
+    const gain = engine.calculatePrestigeGain ? engine.calculatePrestigeGain() : D(0);
+    const pct = engine.getPrestigeProgress ? engine.getPrestigeProgress() : 0;
+
+    if (modalPrestigeProgressPct) modalPrestigeProgressPct.textContent = `${pct.toFixed(1)}%`;
+    if (modalPrestigeProgressBar) modalPrestigeProgressBar.style.width = `${pct}%`;
+    if (modalPrestigeCurPoints) modalPrestigeCurPoints.textContent = `Current: ${engine.currencies.matter.format(2)} / 10.00 Qd₽`;
     if (prestigeGainPreview) prestigeGainPreview.textContent = `+${gain.format(0)} ₹`;
+
+    if (confirmPrestigeBtn) {
+      confirmPrestigeBtn.disabled = !can;
+      confirmPrestigeBtn.textContent = can ? `Trigger Prestige (+${gain.format(0)} ₹)` : 'Need 10 Qd₽';
+    }
+
     if (prestigeModal) prestigeModal.classList.add('modal-open');
   };
+
+  if (openPrestigeBaseplateBtn) {
+    openPrestigeBaseplateBtn.addEventListener('click', () => {
+      if (prestigeModal) prestigeModal.classList.remove('modal-open');
+      switchTab('prestige');
+    });
+  }
 
   if (closePrestigeBtn) {
     closePrestigeBtn.addEventListener('click', () => {
@@ -987,12 +1022,16 @@ ${pulled.desc}`);
 
   if (confirmPrestigeBtn) {
     confirmPrestigeBtn.addEventListener('click', () => {
-      const gained = engine.triggerPrestige ? engine.triggerPrestige() : null;
+      if (!engine.canPrestige()) return;
+      const gained = engine.triggerPrestige();
       if (gained && gained.gt(0)) {
         sound.playPrestige();
         prestigeModal.classList.remove('modal-open');
-        switchTab('tree');
-        canvasRenderer.render();
+        switchTab('prestige');
+        renderPrestigeView();
+        updateHeaderTickers();
+        updateNavTabVisibilities();
+        canvasRenderer.spawnFloatingText(`✦ REALITY COLLAPSED! +${gained.format(0)} ₹ ✦`, window.innerWidth / 2, window.innerHeight / 2, true);
       }
     });
   }
@@ -1053,6 +1092,224 @@ ${pulled.desc}`);
     }
   }
 
+
+  // -------------------------------------------------------------
+  // PRESTIGE BASEPLATE CONTROLLER (#1p - #29p)
+  // -------------------------------------------------------------
+  let prestigeFilter = 'all';
+  const prestigeBaseplateBalance = document.getElementById('prestigeBaseplateBalance');
+  const prestigeLifetimeCount = document.getElementById('prestigeLifetimeCount');
+  const prestigePeakMatter = document.getElementById('prestigePeakMatter');
+  const prestigeProgressBar = document.getElementById('prestigeProgressBar');
+  const prestigeProgressCur = document.getElementById('prestigeProgressCur');
+  const prestigeProgressPct = document.getElementById('prestigeProgressPct');
+  const prestigeGainBaseplate = document.getElementById('prestigeGainBaseplate');
+  const prestigeTriggerActionBtn = document.getElementById('prestigeTriggerActionBtn');
+  const prestigeCardsContainer = document.getElementById('prestigeCardsContainer');
+  const prestigeBuyAllBtn = document.getElementById('prestigeBuyAllBtn');
+  const prestigeFilterChips = document.getElementById('prestigeFilterChips');
+  const prestigeOwnedSummary = document.getElementById('prestigeOwnedSummary');
+
+  if (prestigeFilterChips) {
+    prestigeFilterChips.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        prestigeFilterChips.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        prestigeFilter = btn.dataset.filter;
+        renderPrestigeView();
+      });
+    });
+  }
+
+  if (prestigeTriggerActionBtn) {
+    prestigeTriggerActionBtn.addEventListener('click', () => {
+      if (!engine.canPrestige()) return;
+      const gained = engine.triggerPrestige();
+      if (gained && gained.gt(0)) {
+        sound.playPrestige();
+        canvasRenderer.spawnFloatingText(`✦ REALITY COLLAPSED! +${gained.format(0)} ₹ ✦`, window.innerWidth / 2, window.innerHeight / 2, true);
+        renderPrestigeView();
+        updateHeaderTickers();
+        updateNavTabVisibilities();
+      }
+    });
+  }
+
+  if (prestigeBuyAllBtn) {
+    prestigeBuyAllBtn.addEventListener('click', () => {
+      const defs = getNodeDefs();
+      const pIds = (typeof PRESTIGE_NODE_IDS !== 'undefined') ? PRESTIGE_NODE_IDS : Object.keys(defs).filter(k => k.endsWith('p'));
+      let anyBought = false;
+      pIds.forEach(id => {
+        if (engine.canAffordNode(id)) {
+          const b = engine.buyMaxNode ? engine.buyMaxNode(id) : engine.buyNode(id);
+          if (b) anyBought = true;
+        }
+      });
+      if (anyBought) {
+        sound.playBuy();
+        renderPrestigeView();
+        updateHeaderTickers();
+      }
+    });
+  }
+
+  const pCardElements = new Map();
+
+  function renderPrestigeView() {
+    if (prestigeBaseplateBalance) prestigeBaseplateBalance.textContent = engine.currencies.prestige.format(2);
+    if (prestigeLifetimeCount) prestigeLifetimeCount.textContent = (engine.stats.prestiges || 0);
+    if (prestigePeakMatter) prestigePeakMatter.textContent = `Peak: ${(engine.stats.peakMatter ? engine.stats.peakMatter.format(2) : '0')} ₽`;
+
+    // Progress & Reset Panel
+    const can = engine.canPrestige ? engine.canPrestige() : false;
+    const pct = engine.getPrestigeProgress ? engine.getPrestigeProgress() : 0;
+    const gain = engine.calculatePrestigeGain ? engine.calculatePrestigeGain() : D(0);
+
+    if (prestigeProgressBar) prestigeProgressBar.style.width = `${pct}%`;
+    if (prestigeProgressCur) prestigeProgressCur.textContent = `${engine.currencies.matter.format(2)} / 10.00 Qd₽`;
+    if (prestigeProgressPct) prestigeProgressPct.textContent = `${pct.toFixed(1)}%`;
+    if (prestigeGainBaseplate) prestigeGainBaseplate.textContent = `+${gain.format(0)} ₹`;
+
+    if (prestigeTriggerActionBtn) {
+      prestigeTriggerActionBtn.disabled = !can;
+      prestigeTriggerActionBtn.classList.toggle('ready', can);
+    }
+
+    const defs = getNodeDefs();
+    const pIds = (typeof PRESTIGE_NODE_IDS !== 'undefined') ? PRESTIGE_NODE_IDS : Object.keys(defs).filter(k => k.endsWith('p'));
+
+    let totalOwned = 0;
+    pIds.forEach(id => {
+      if ((engine.upgrades[id] || 0) > 0) totalOwned++;
+    });
+    if (prestigeOwnedSummary) prestigeOwnedSummary.textContent = `${totalOwned} / ${pIds.length} Upgrades Owned`;
+
+    if (!prestigeCardsContainer) return;
+
+    pIds.forEach(id => {
+      const def = defs[id];
+      if (!def) return;
+
+      const subcat = def.subcategory || 'multi';
+      const matchesFilter = (prestigeFilter === 'all') || (prestigeFilter === subcat);
+
+      let card = pCardElements.get(id);
+      if (!card) {
+        card = document.createElement('div');
+        card.className = 'prestige-card';
+        card.dataset.node = id;
+        card.dataset.subcat = subcat;
+
+        card.innerHTML = `
+          <div class="pcard-top-row">
+            <div class="pcard-icon-box">${def.icon}</div>
+            <div class="pcard-info">
+              <div class="pcard-tag-row">
+                <span class="pcard-num">${def.num}</span>
+                <span class="pcard-lvl-badge" id="plvl-${id}">LVL 0</span>
+              </div>
+              <div class="pcard-title" title="${def.name}">${def.name}</div>
+            </div>
+          </div>
+          <div class="pcard-desc-box">
+            <div class="pcard-effect" id="peffect-${id}">Effect</div>
+            <div class="pcard-lore">${def.lore}</div>
+          </div>
+          <div class="pcard-bottom-row">
+            <div class="pcard-cost-pill" id="pcost-${id}">0 ₹</div>
+            <div class="pcard-actions">
+              <button class="pcard-btn" id="pbtn-${id}">BUY (+1)</button>
+              ${def.maxLevel > 1 ? `<button class="pcard-btn pcard-max-btn" id="pbtnmax-${id}">MAX</button>` : ''}
+            </div>
+          </div>
+        `;
+
+        const buyBtn = card.querySelector(`#pbtn-${id}`);
+        if (buyBtn) {
+          buyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (engine.buyNode(id)) {
+              sound.playBuy();
+              renderPrestigeView();
+              updateHeaderTickers();
+            }
+          });
+        }
+
+        const maxBtn = card.querySelector(`#pbtnmax-${id}`);
+        if (maxBtn) {
+          maxBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (engine.buyMaxNode(id)) {
+              sound.playBuy();
+              renderPrestigeView();
+              updateHeaderTickers();
+            }
+          });
+        }
+
+        pCardElements.set(id, card);
+        prestigeCardsContainer.appendChild(card);
+      }
+
+      card.style.display = matchesFilter ? 'flex' : 'none';
+
+      // Update Card State
+      const lvl = engine.upgrades[id] || 0;
+      const maxLvl = engine.getNodeMaxLevel(id);
+      const isMaxed = maxLvl > 0 && lvl >= maxLvl;
+      const canAfford = engine.canAffordNode(id);
+      const cost = engine.getNodeCost(id);
+      const symbol = def.currency === 'bits' ? '฿' : '₹';
+
+      card.classList.toggle('affordable', canAfford && !isMaxed);
+      card.classList.toggle('maxed', isMaxed);
+      card.classList.toggle('permanent', !!def.isPermanent);
+
+      const lvlBadge = card.querySelector(`#plvl-${id}`);
+      if (lvlBadge) {
+        if (def.isPermanent) {
+          lvlBadge.textContent = lvl > 0 ? 'PERMANENT' : 'UNLOCKED';
+          lvlBadge.className = 'pcard-lvl-badge ' + (lvl > 0 ? 'badge-perm' : '');
+        } else if (isMaxed) {
+          lvlBadge.textContent = 'MAXED';
+          lvlBadge.className = 'pcard-lvl-badge badge-maxed';
+        } else if (maxLvl > 1) {
+          lvlBadge.textContent = `${lvl}/${maxLvl}`;
+          lvlBadge.className = 'pcard-lvl-badge';
+        } else {
+          lvlBadge.textContent = lvl > 0 ? 'ACTIVE' : 'NOT OWNED';
+          lvlBadge.className = 'pcard-lvl-badge ' + (lvl > 0 ? 'badge-maxed' : '');
+        }
+      }
+
+      const effectEl = card.querySelector(`#peffect-${id}`);
+      if (effectEl) {
+        effectEl.textContent = typeof def.effectDescription === 'function' ? def.effectDescription(lvl, engine) : def.effectDescription;
+      }
+
+      const costEl = card.querySelector(`#pcost-${id}`);
+      if (costEl) {
+        costEl.textContent = isMaxed ? 'OWNED' : `${cost.format(2)} ${symbol}`;
+      }
+
+      const buyBtn = card.querySelector(`#pbtn-${id}`);
+      if (buyBtn) {
+        buyBtn.disabled = isMaxed || !canAfford;
+        if (isMaxed) buyBtn.textContent = 'OWNED';
+        else if (def.isPermanent && lvl > 0) buyBtn.textContent = 'ACTIVE';
+        else buyBtn.textContent = 'BUY (+1)';
+      }
+
+      const maxBtn = card.querySelector(`#pbtnmax-${id}`);
+      if (maxBtn) {
+        maxBtn.disabled = isMaxed || !canAfford;
+      }
+    });
+  }
+  window.renderPrestigeView = renderPrestigeView;
+
   // -------------------------------------------------------------
   // 14. Sound FX, Drone & Camera Controls
   // -------------------------------------------------------------
@@ -1104,6 +1361,8 @@ ${pulled.desc}`);
     canvasRenderer.update(dt);
     if (activeTab === 'tree') {
       canvasRenderer.render();
+    } else if (activeTab === 'prestige') {
+      renderPrestigeView();
     } else if (activeTab === 'bonus') {
       renderBonusView();
     }

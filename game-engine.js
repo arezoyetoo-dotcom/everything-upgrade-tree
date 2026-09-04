@@ -138,8 +138,18 @@ class GameEngine {
     let cost = D(0);
     if (typeof def.costFormula === 'function') {
       cost = def.costFormula(lvl, this);
-    } else {
-      cost = def.baseCost;
+    } else if (def.baseCost) {
+      if (def.costMult && def.costMult > 1 && lvl > 0) {
+        cost = def.baseCost.mul(D(def.costMult).pow(lvl));
+      } else {
+        cost = def.baseCost;
+      }
+    }
+
+    // #14p Deflation: Point upgrade cost is reduced by 5% compounding every level
+    if ((def.currency === 'matter' || !def.currency) && this.upgrades['node_14p']) {
+      const defl = D(0.95).pow(this.upgrades['node_14p']);
+      cost = cost.mul(defl);
     }
 
     if (this.stats.hardcoreMode) {
@@ -182,6 +192,15 @@ class GameEngine {
     if (!this.canAffordNode(nodeId)) return false;
 
     const def = this.getNodeDef(nodeId);
+    const maxLvl = this.getNodeMaxLevel(nodeId);
+
+    // #5p fast and furious: Point upgrades now "buy max" when clicked [PERMANENT]
+    const isMulti = maxLvl > 1 || maxLvl === 0;
+    const isPointUpgrade = (def.currency === 'matter' || !def.currency);
+    if (this.upgrades['node_5p'] && isMulti && isPointUpgrade) {
+      return this.buyMaxNode(nodeId);
+    }
+
     const cost = this.getNodeCost(nodeId);
     const currencyKey = def.currency || 'matter';
 
@@ -206,6 +225,38 @@ class GameEngine {
     this.recalculateStatsAndRates();
     this.saveGame();
     return true;
+  }
+
+  buyMaxNode(nodeId) {
+    if (!this.isNodeUnlocked(nodeId)) return false;
+    const maxLvl = this.getNodeMaxLevel(nodeId);
+    const def = this.getNodeDef(nodeId);
+    if (!def) return false;
+    const currencyKey = def.currency || 'matter';
+
+    let bought = 0;
+    while (this.canAffordNode(nodeId)) {
+      const curLvl = this.upgrades[nodeId] || 0;
+      if (maxLvl > 0 && curLvl >= maxLvl) break;
+
+      const cost = this.getNodeCost(nodeId);
+      if (!cost.isZero() && this.currencies[currencyKey]) {
+        if (this.currencies[currencyKey].lt(cost)) break;
+        this.currencies[currencyKey] = this.currencies[currencyKey].sub(cost);
+      }
+
+      this.upgrades[nodeId] = curLvl + 1;
+      bought++;
+      if (bought >= 500) break; // Safety batch cap per execution
+    }
+
+    if (bought > 0) {
+      this.addXp(15 * bought);
+      this.recalculateStatsAndRates();
+      this.saveGame();
+      return true;
+    }
+    return false;
   }
 
   // -------------------------------------------------------------
@@ -296,6 +347,25 @@ class GameEngine {
         pts = pts.mul(1 + this.player.perks.pointMagnet * 0.1);
       }
 
+      // --- Prestige Baseplate Multipliers ---
+      // #2p rocket shot: +1x ₽ gain per level
+      const lvl2p = this.upgrades['node_2p'] || 0;
+      if (lvl2p > 0) {
+        pts = pts.mul(D(1).add(D(lvl2p).mul(1.0)));
+      }
+
+      // #10p generic filler: x2 ₽ gain per level
+      const lvl10p = this.upgrades['node_10p'] || 0;
+      if (lvl10p > 0) {
+        pts = pts.mul(D(2).pow(lvl10p));
+      }
+
+      // #13p ultra rocket shot: +2x ₽ gain per level
+      const lvl13p = this.upgrades['node_13p'] || 0;
+      if (lvl13p > 0) {
+        pts = pts.mul(D(1).add(D(lvl13p).mul(2.0)));
+      }
+
       // #25: After Halcyon (^1.05 ₽ gain after all multipliers)
       if (this.upgrades['node_25']) {
         pts = pts.pow(1.05);
@@ -315,6 +385,18 @@ class GameEngine {
         res = res.mul(1 + this.player.perks.researchSpeed * 0.1);
       }
 
+      // #2p rocket shot: +0.5x λ gain per level
+      const lvl2p = this.upgrades['node_2p'] || 0;
+      if (lvl2p > 0) {
+        res = res.mul(D(1).add(D(lvl2p).mul(0.5)));
+      }
+
+      // #4p duping IQ: x2 λ gain per level compounding
+      const lvl4p = this.upgrades['node_4p'] || 0;
+      if (lvl4p > 0) {
+        res = res.mul(D(2).pow(lvl4p));
+      }
+
       if (this.upgrades['node_31']) {
         res = res.pow(1.05);
       }
@@ -331,10 +413,15 @@ class GameEngine {
     }
 
     // 5. Point-X (₽X) Rate
-    if (this.upgrades['node_33']) {
+    if (this.upgrades['node_33'] || this.upgrades['node_17p']) {
       let px = D(5);
       if (this.upgrades['node_34']) {
         px = px.pow(1.1);
+      }
+      // #18p noxious efficiency: improves formula exponent by +0.01 per level
+      const lvl18p = this.upgrades['node_18p'] || 0;
+      if (lvl18p > 0) {
+        px = px.pow(1 + lvl18p * 0.01);
       }
       this.rates.pointXPerSec = px;
     } else {
@@ -373,7 +460,18 @@ class GameEngine {
   }
 
   addXp(amount) {
-    if (!this.upgrades['node_16']) return;
+    if (!this.upgrades['node_16'] && !this.upgrades['node_7p']) return;
+
+    // #8p 2UP!: Multiplies XP gained on click by x2 compounding
+    const lvl8p = this.upgrades['node_8p'] || 0;
+    if (lvl8p > 0) {
+      amount *= Math.pow(2, lvl8p);
+    }
+
+    // #22p beyond balancing: Applies a ^1.5 exponent to XP gain
+    if (this.upgrades['node_22p']) {
+      amount = Math.pow(Math.max(1, amount), 1.5);
+    }
 
     this.player.xp += amount;
     while (this.player.xp >= this.getXpRequiredForNextLevel()) {
@@ -468,6 +566,16 @@ class GameEngine {
   // 7. Delta-Time Loop & Offline Progress
   // -------------------------------------------------------------
   tick(dt) {
+    this.stats.transcensionTime = (this.stats.transcensionTime || 0) + dt;
+
+    // #6p angelic researchers: Generate 1% of λ gain per second passively
+    if (this.upgrades['node_6p'] && this.rates.researchPerSec.gt(0)) {
+      const lvl6p = this.upgrades['node_6p'] || 1;
+      const passiveRes = this.rates.researchPerSec.mul(0.01 * lvl6p).mul(dt);
+      this.currencies.research = this.currencies.research.add(passiveRes);
+      this.currencies.totalResearch = this.currencies.totalResearch.add(passiveRes);
+    }
+
     if (this.rates.matterPerSec.gt(0)) {
       const dMatter = this.rates.matterPerSec.mul(dt);
       this.currencies.matter = this.currencies.matter.add(dMatter);
@@ -516,6 +624,96 @@ class GameEngine {
       };
     }
     this.stats.lastSavedTime = now;
+  }
+
+  // -------------------------------------------------------------
+  // PRESTIGE LAYER MECHANICS (Second Major Reset Layer)
+  // -------------------------------------------------------------
+  getPrestigeRequirement() {
+    // Minimum 10 Quindecillion Points (10 Qd₽ = 1e49)
+    return D(1, 49);
+  }
+
+  canPrestige() {
+    return this.currencies.matter.gte(this.getPrestigeRequirement());
+  }
+
+  getPrestigeProgress() {
+    const req = this.getPrestigeRequirement();
+    const cur = this.currencies.matter;
+    if (cur.gte(req)) return 100;
+    if (cur.isZero() || cur.e < 0) return 0;
+    // Normalized log progress from 0 to 49
+    const ratio = Math.min(49, Math.max(0, cur.e + Math.log10(cur.m || 1)));
+    return Math.min(99.9, Math.max(0, (ratio / 49) * 100));
+  }
+
+  calculatePrestigeGain() {
+    const req = this.getPrestigeRequirement();
+    if (this.currencies.matter.lt(req)) return D(0);
+
+    // Base formula: (points / 1e49) ^ 0.2
+    const ratio = this.currencies.matter.div(req);
+    let gain = ratio.pow(0.2);
+
+    // #10p generic filler: x2 to both ₹ and ₽ gain compounding per level
+    const lvl10p = this.upgrades['node_10p'] || 0;
+    if (lvl10p > 0) {
+      gain = gain.mul(D(2).pow(lvl10p));
+    }
+
+    // #15p megabits: ₹ gain is boosted by your Bits (฿)
+    if (this.upgrades['node_15p']) {
+      const bits = this.currencies.bits || D(0);
+      const bitsMult = D(1 + Math.max(0, bits.add(1).log10() * 0.75));
+      gain = gain.mul(bitsMult);
+    }
+
+    // #19p no pain no gain: x1.15 ₹ gain for every level of prestige challenges beaten
+    const lvl19p = this.upgrades['node_19p'] || 0;
+    if (lvl19p > 0) {
+      const beaten = this.stats.challengesBeaten || 0;
+      gain = gain.mul(D(1.15).pow(Math.max(1, beaten) * lvl19p));
+    }
+
+    return gain.floor().max(1);
+  }
+
+  triggerPrestige() {
+    if (!this.canPrestige()) return null;
+
+    const gain = this.calculatePrestigeGain();
+    if (gain.lte(0)) return null;
+
+    // Award Prestige Points (₹)
+    this.currencies.prestige = this.currencies.prestige.add(gain);
+    this.stats.prestiges = (this.stats.prestiges || 0) + 1;
+
+    if (!this.stats.peakMatter || this.currencies.matter.gt(this.stats.peakMatter)) {
+      this.stats.peakMatter = this.currencies.matter;
+    }
+
+    // Wipe current Points and Research progress (excluding permanent upgrades)
+    this.currencies.matter = D(0);
+    this.currencies.research = D(0);
+
+    // Retained across standard prestige resets:
+    const permanentKeys = new Set([
+      'node_1', 'node_0d',
+      'node_1p', 'node_2p', 'node_3p', 'node_4p', 'node_5p', 'node_6p', 'node_7p', 'node_8p', 'node_9p', 'node_10p',
+      'node_11p', 'node_12p', 'node_13p', 'node_14p', 'node_15p', 'node_16p', 'node_17p', 'node_18p', 'node_19p', 'node_20p',
+      'node_21p', 'node_22p', 'node_23p', 'node_24p', 'node_25p', 'node_26p', 'node_27p', 'node_28p', 'node_29p'
+    ]);
+
+    Object.keys(this.upgrades).forEach(key => {
+      if (!permanentKeys.has(key) && !key.endsWith('p')) {
+        delete this.upgrades[key];
+      }
+    });
+
+    this.recalculateStatsAndRates();
+    this.saveGame();
+    return gain;
   }
 
   // -------------------------------------------------------------

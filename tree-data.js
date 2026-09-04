@@ -814,11 +814,543 @@ const NODE_DEFS = {
     maxLevel: 1,
     requires: { 'node_34': 1, 'node_38': 1, 'node_39': 1 },
     effectDescription: 'Unlocks the Hardcore Baseplate.'
+  },
+
+  // =============================================================
+  // PRESTIGE BASEPLATE CANON NODES (#1p - #29p)
+  // =============================================================
+
+  // #1p the challenge
+  'node_1p': {
+    id: 'node_1p',
+    num: '#1p',
+    name: 'the challenge',
+    tag: 'CHALLENGE UNLOCK',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Unlocks the Mystic Obelisk to start challenges [PERMANENT].',
+    icon: '⚔️',
+    baseCost: D(250),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    isPermanent: true,
+    effectDescription: 'Unlocks the Mystic Obelisk to start challenges [PERMANENT].'
+  },
+
+  // #2p rocket shot
+  'node_2p': {
+    id: 'node_2p',
+    num: '#2p',
+    name: 'rocket shot',
+    tag: 'DUAL MULTIPLIER',
+    category: 'prestige',
+    subcategory: 'multi',
+    lore: '+1× ₽ (Points) and +0.5× λ (Research) gain per level.',
+    icon: '🚀',
+    baseCost: D(0.05),
+    costMult: 1.8,
+    costFormula: (lvl) => D(0.05).mul(D(1.8).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 100,
+    effectDescription: (lvl) => '+ ' + (lvl * 1) + '× ₽ gain and + ' + (lvl * 0.5).toFixed(1) + '× λ gain.'
+  },
+
+  // #3p to new heights
+  'node_3p': {
+    id: 'node_3p',
+    num: '#3p',
+    name: 'to new heights',
+    tag: 'TREE EXPANSION',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Expands the points tree [PERMANENT].',
+    icon: '🏔️',
+    baseCost: D(0),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    isPermanent: true,
+    effectDescription: 'Expands the points tree [PERMANENT].'
+  },
+
+  // #4p duping IQ
+  'node_4p': {
+    id: 'node_4p',
+    num: '#4p',
+    name: 'duping IQ',
+    tag: 'RESEARCH MULTIPLIER',
+    category: 'prestige',
+    subcategory: 'multi',
+    lore: 'Multiplies λ gained by ×2 compounding per level.',
+    icon: '🧠',
+    baseCost: D(3),
+    costMult: 2.0,
+    costFormula: (lvl) => D(3).mul(D(2.0).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 50,
+    effectDescription: (lvl) => '×' + D(2).pow(lvl).format(0) + ' compounding λ gain.'
+  },
+
+  // #5p fast and furious
+  'node_5p': {
+    id: 'node_5p',
+    num: '#5p',
+    name: 'fast and furious',
+    tag: 'AUTOMATION / QOL',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Point upgrades now "buy max" when clicked [PERMANENT].',
+    icon: '⚡',
+    baseCost: D(0),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    isPermanent: true,
+    effectDescription: 'Point upgrades now "buy max" when clicked [PERMANENT].'
+  },
+
+  // #6p angelic researchers
+  'node_6p': {
+    id: 'node_6p',
+    num: '#6p',
+    name: 'angelic researchers',
+    tag: 'PASSIVE RESEARCH',
+    category: 'prestige',
+    subcategory: 'multi',
+    lore: 'Start generating 1% of λ gain per second.',
+    icon: '👼',
+    baseCost: D(2.5),
+    costMult: 2.2,
+    costFormula: (lvl) => D(2.5).mul(D(2.2).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 25,
+    effectDescription: (lvl) => 'Start generating ' + (lvl * 1) + '% of λ gain per second.'
+  },
+
+  // #7p different variations
+  'node_7p': {
+    id: 'node_7p',
+    num: '#7p',
+    name: 'different variations',
+    tag: 'BUILDING UNLOCK',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Unlocks the Level Transformer building [PERMANENT].',
+    icon: '🎛️',
+    baseCost: D(10),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    isPermanent: true,
+    effectDescription: 'Unlocks the Level Transformer building [PERMANENT].'
+  },
+
+  // #8p 2UP!
+  'node_8p': {
+    id: 'node_8p',
+    num: '#8p',
+    name: '2UP!',
+    tag: 'XP MULTIPLIER',
+    category: 'prestige',
+    subcategory: 'multi',
+    lore: 'Multiplies XP gained on click by ×2 compounding.',
+    icon: '⏫',
+    baseCost: D(300),
+    costMult: 2.5,
+    costFormula: (lvl) => D(300).mul(D(2.5).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 30,
+    effectDescription: (lvl) => '×' + D(2).pow(lvl).format(0) + ' XP gained on click compounding.'
+  },
+
+  // #9p incremental dream
+  'node_9p': {
+    id: 'node_9p',
+    num: '#9p',
+    name: 'incremental dream',
+    tag: 'BASEPLATE UNLOCK',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Unlocks the Automation Baseplate [PERMANENT].',
+    icon: '🤖',
+    baseCost: D(7.5),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    isPermanent: true,
+    effectDescription: 'Unlocks the Automation Baseplate [PERMANENT].'
+  },
+
+  // #10p generic filler
+  'node_10p': {
+    id: 'node_10p',
+    num: '#10p',
+    name: 'generic filler',
+    tag: 'DUAL MULTIPLIER',
+    category: 'prestige',
+    subcategory: 'multi',
+    lore: '×2 to both ₹ and ₽ gain.',
+    icon: '📦',
+    baseCost: D(20),
+    costMult: 2.5,
+    costFormula: (lvl) => D(20).mul(D(2.5).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 50,
+    effectDescription: (lvl) => '×' + D(2).pow(lvl).format(0) + ' to both ₹ and ₽ gain.'
+  },
+
+  // #11p unlazy scientists
+  'node_11p': {
+    id: 'node_11p',
+    num: '#11p',
+    name: 'unlazy scientists',
+    tag: 'RESEARCH EXPANSION',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Unlocks more research upgrades.',
+    icon: '🔬',
+    baseCost: D(10000),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    effectDescription: 'Unlocks more research upgrades.'
+  },
+
+  // #12p level 999,999
+  'node_12p': {
+    id: 'node_12p',
+    num: '#12p',
+    name: 'level 999,999',
+    tag: 'LEVEL MILESTONE',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Unlocks more level milestones.',
+    icon: '🎖️',
+    baseCost: D(25000),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    effectDescription: 'Unlocks more level milestones.'
+  },
+
+  // #13p ultra rocket shot
+  'node_13p': {
+    id: 'node_13p',
+    num: '#13p',
+    name: 'ultra rocket shot',
+    tag: 'POINT MULTIPLIER',
+    category: 'prestige',
+    subcategory: 'multi',
+    lore: '+2× ₽ gain per level.',
+    icon: '💥',
+    baseCost: D(50),
+    costMult: 2.0,
+    costFormula: (lvl) => D(50).mul(D(2.0).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 50,
+    effectDescription: (lvl) => '+' + (lvl * 2) + '× ₽ gain per level.'
+  },
+
+  // #14p deflation
+  'node_14p': {
+    id: 'node_14p',
+    num: '#14p',
+    name: 'deflation',
+    tag: 'COST REDUCTION',
+    category: 'prestige',
+    subcategory: 'multi',
+    lore: 'Point upgrade cost is reduced by 5% compounding every level.',
+    icon: '📉',
+    baseCost: D(50000),
+    costMult: 2.5,
+    costFormula: (lvl) => D(50000).mul(D(2.5).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 20,
+    effectDescription: (lvl) => 'Point upgrade cost reduced by ' + (100 * (1 - Math.pow(0.95, lvl))).toFixed(1) + '% compounding.'
+  },
+
+  // #15p megabits
+  'node_15p': {
+    id: 'node_15p',
+    num: '#15p',
+    name: 'megabits',
+    tag: 'BITS SYNERGY',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: '₹ gain is boosted by your Bits (฿).',
+    icon: '💾',
+    baseCost: D(35000000),
+    costMult: 1,
+    currency: 'bits',
+    maxLevel: 1,
+    effectDescription: (lvl, engine) => {
+      const b = (engine && engine.currencies && engine.currencies.bits) ? engine.currencies.bits : D(0);
+      const mult = D(1 + Math.max(0, b.add(1).log10() * 0.75));
+      return '₹ gain is boosted by your Bits (฿) (currently ×' + mult.format(2) + ').';
+    }
+  },
+
+  // #16p to be continued
+  'node_16p': {
+    id: 'node_16p',
+    num: '#16p',
+    name: 'to be continued',
+    tag: 'CHALLENGE UNLOCK',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Unlocks another challenge [PERMANENT].',
+    icon: '⏳',
+    baseCost: D(5000000),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    isPermanent: true,
+    effectDescription: 'Unlocks another challenge [PERMANENT].'
+  },
+
+  // #17p the darkening
+  'node_17p': {
+    id: 'node_17p',
+    num: '#17p',
+    name: 'the darkening',
+    tag: 'BASEPLATE UNLOCK',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Unlocks the Point-X (₽X) Baseplate [PERMANENT].',
+    icon: '🌑',
+    baseCost: D(500000),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    isPermanent: true,
+    effectDescription: 'Unlocks the Point-X (₽X) Baseplate [PERMANENT].'
+  },
+
+  // #18p noxious efficiency
+  'node_18p': {
+    id: 'node_18p',
+    num: '#18p',
+    name: 'noxious efficiency',
+    tag: 'POINT-X BOOST',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Every level, improves the ₽X gain formula by an exponent of +0.01.',
+    icon: '🧪',
+    baseCost: D(50000000),
+    costMult: 2.0,
+    costFormula: (lvl) => D(50000000).mul(D(2.0).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 25,
+    effectDescription: (lvl) => '+' + (lvl * 0.01).toFixed(2) + ' to ₽X gain formula exponent.'
+  },
+
+  // #19p no pain no gain
+  'node_19p': {
+    id: 'node_19p',
+    num: '#19p',
+    name: 'no pain no gain',
+    tag: 'CHALLENGE MULTIPLIER',
+    category: 'prestige',
+    subcategory: 'multi',
+    lore: '×1.15 ₹ gain for every level of prestige challenges beaten.',
+    icon: '🩸',
+    baseCost: D(50000),
+    costMult: 2.5,
+    costFormula: (lvl) => D(50000).mul(D(2.5).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 25,
+    effectDescription: (lvl) => '×' + Math.pow(1.15, lvl).toFixed(2) + ' ₹ gain for every level of prestige challenges beaten.'
+  },
+
+  // #20p deeper flows
+  'node_20p': {
+    id: 'node_20p',
+    num: '#20p',
+    name: 'deeper flows',
+    tag: 'AXP BOOST',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Every level, improves the AXP gain formula by an exponent of +0.04.',
+    icon: '🌊',
+    baseCost: D(1000000000),
+    costMult: 2.5,
+    costFormula: (lvl) => D(1000000000).mul(D(2.5).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 20,
+    effectDescription: (lvl) => '+' + (lvl * 0.04).toFixed(2) + ' to AXP gain formula exponent.'
+  },
+
+  // #21p supermassive upgrade
+  'node_21p': {
+    id: 'node_21p',
+    num: '#21p',
+    name: 'supermassive upgrade',
+    tag: 'SUN MULTIPLIER',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Every level, improves ☉ (Sun) gain by ×2.5 compounding.',
+    icon: '☀️',
+    baseCost: D(10000000000),
+    costMult: 3.0,
+    costFormula: (lvl) => D(10000000000).mul(D(3.0).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 25,
+    effectDescription: (lvl) => '×' + D(2.5).pow(lvl).format(1) + ' compounding ☉ (Sun) gain.'
+  },
+
+  // #22p beyond balancing
+  'node_22p': {
+    id: 'node_22p',
+    num: '#22p',
+    name: 'beyond balancing',
+    tag: 'XP EXPONENT',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Applies a ^1.5 exponent to XP gain after all multipliers.',
+    icon: '⚖️',
+    baseCost: D(1000000000000),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    effectDescription: 'Applies a ^1.5 exponent to XP gain after all multipliers.'
+  },
+
+  // #23p point production
+  'node_23p': {
+    id: 'node_23p',
+    num: '#23p',
+    name: 'point production',
+    tag: 'CHALLENGE BOOST',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Improves the Point Deduction challenge boost formula.',
+    icon: '🎯',
+    baseCost: D(5000000000000),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    effectDescription: 'Improves the Point Deduction challenge boost formula.'
+  },
+
+  // #24p point reduction
+  'node_24p': {
+    id: 'node_24p',
+    num: '#24p',
+    name: 'point reduction',
+    tag: 'CHALLENGE PERK',
+    category: 'prestige',
+    subcategory: 'unlock',
+    lore: 'Reduces the Point Deduction debuff [PERMANENT].',
+    icon: '🛡️',
+    baseCost: D(10000000000),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    isPermanent: true,
+    effectDescription: 'Reduces the Point Deduction debuff [PERMANENT].'
+  },
+
+  // #25p seed of light
+  'node_25p': {
+    id: 'node_25p',
+    num: '#25p',
+    name: 'seed of light',
+    tag: 'MILESTONE BOOST',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Improves the formula for the first level milestone.',
+    icon: '💡',
+    baseCost: D(2500),
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    effectDescription: 'Improves the formula for the first level milestone.'
+  },
+
+  // #26p speciation of science
+  'node_26p': {
+    id: 'node_26p',
+    num: '#26p',
+    name: 'speciation of science',
+    tag: 'CHALLENGE BOOST',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Improves the Extinction of Science challenge boost formula.',
+    icon: '🧬',
+    baseCost: D(1, 28), // 10 Octillion ₹ (1e28)
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    effectDescription: 'Improves the Extinction of Science challenge boost formula.'
+  },
+
+  // #27p time dilation
+  'node_27p': {
+    id: 'node_27p',
+    num: '#27p',
+    name: 'time dilation',
+    tag: 'COOLDOWN REDUCTION',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Reduces the cooldown of specific Point-X abilities by 1s per level.',
+    icon: '⌛',
+    baseCost: D(1, 26), // 100 Septillion ₹ (1e26)
+    costMult: 2.0,
+    costFormula: (lvl) => D(1, 26).mul(D(2.0).pow(lvl)),
+    currency: 'prestige',
+    maxLevel: 20,
+    effectDescription: (lvl) => 'Reduces Point-X ability cooldowns by -' + lvl + 's.'
+  },
+
+  // #28p prominence
+  'node_28p': {
+    id: 'node_28p',
+    num: '#28p',
+    name: 'prominence',
+    tag: 'MILESTONE BOOST',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: 'Improves the formula for the fourth level milestone.',
+    icon: '👑',
+    baseCost: D(1, 25), // 10 Septillion ₹ (1e25)
+    costMult: 1,
+    currency: 'prestige',
+    maxLevel: 1,
+    effectDescription: 'Improves the formula for the fourth level milestone.'
+  },
+
+  // #29p heavenly timewall
+  'node_29p': {
+    id: 'node_29p',
+    num: '#29p',
+    name: 'heavenly timewall',
+    tag: 'TRANSCEND POW',
+    category: 'prestige',
+    subcategory: 'cosmic',
+    lore: '×2τ (Transcend Points) gain compounding. Cost halves for every second spent in the current transcension.',
+    icon: '🌌',
+    baseCost: D(1, 100), // 1e100 (10 DTg)
+    costMult: 2.0,
+    costFormula: (lvl, engine) => {
+      const transTime = (engine && engine.stats && engine.stats.transcensionTime) ? engine.stats.transcensionTime : 0;
+      const discount = D(2).pow(Math.min(1000, transTime));
+      let cost = D(1, 100).div(discount);
+      if (cost.lt(1)) cost = D(1);
+      return cost.mul(D(2.0).pow(lvl));
+    },
+    currency: 'prestige',
+    maxLevel: 50,
+    effectDescription: (lvl) => '×' + D(2).pow(lvl).format(0) + ' Transcend Points (τ) gain compounding. Cost halves every second spent in current transcension.'
   }
+
 };
 
+const PRESTIGE_NODE_IDS = ["node_1p","node_2p","node_3p","node_4p","node_5p","node_6p","node_7p","node_8p","node_9p","node_10p","node_11p","node_12p","node_13p","node_14p","node_15p","node_16p","node_17p","node_18p","node_19p","node_20p","node_21p","node_22p","node_23p","node_24p","node_25p","node_26p","node_27p","node_28p","node_29p"];
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { NODE_DEFS };
+  module.exports = { NODE_DEFS, PRESTIGE_NODE_IDS };
 } else {
   window.NODE_DEFS = NODE_DEFS;
+  window.PRESTIGE_NODE_IDS = PRESTIGE_NODE_IDS;
 }

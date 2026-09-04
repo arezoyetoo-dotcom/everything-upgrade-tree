@@ -224,6 +224,37 @@ var Decimal = class Decimal {
   neq(o) { return this.compare(o) !== 0; }
   isZero() { return this.m === 0; }
 
+  floor() {
+    if (this.m === 0) return new Decimal(0);
+    if (this.e >= 16) return new Decimal(this);
+    if (this.e < 0) return new Decimal(this.m >= 0 ? 0 : -1);
+    const val = Math.floor(this.toNumber());
+    return new Decimal(val);
+  }
+
+  ceil() {
+    if (this.m === 0) return new Decimal(0);
+    if (this.e >= 16) return new Decimal(this);
+    if (this.e < 0) return new Decimal(this.m > 0 ? 1 : 0);
+    const val = Math.ceil(this.toNumber());
+    return new Decimal(val);
+  }
+
+  round() {
+    if (this.m === 0) return new Decimal(0);
+    if (this.e >= 16) return new Decimal(this);
+    const val = Math.round(this.toNumber());
+    return new Decimal(val);
+  }
+
+  max(other) {
+    return Decimal.max(this, other);
+  }
+
+  min(other) {
+    return Decimal.min(this, other);
+  }
+
   static max(a, b) {
     const da = Decimal.fromValue(a);
     const db = Decimal.fromValue(b);
@@ -234,6 +265,11 @@ var Decimal = class Decimal {
     const da = Decimal.fromValue(a);
     const db = Decimal.fromValue(b);
     return da.lte(db) ? da : db;
+  }
+
+  static log10(val) {
+    const d = Decimal.fromValue(val);
+    return d.log10();
   }
 
   // --- Formatting with Standard Idle Suffixes, Scientific & Engineering ---

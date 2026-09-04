@@ -121,6 +121,9 @@
         <button class="nav-tab-btn" data-tab="records" id="tabRecords" style="display: none;" title="#20 Leaderboard & Hall of Fame">
           <span>🏆</span> Records
         </button>
+        <button class="nav-tab-btn" data-tab="prestige" id="tabPrestige" style="display: none;" title="Prestige Baseplate (#1p - #29p)">
+          <span>✨</span> Prestige Baseplate
+        </button>
         <button class="nav-tab-btn" data-tab="mining" style="display: none;">
           <span>⛏️</span> Mining
         </button>
@@ -653,17 +656,110 @@
           </div>
         </div>
       </section>
+
+      <!-- 13. Prestige Baseplate Overlay View (#1p - #29p) -->
+      <section class="subsystem-overlay" id="prestigeOverlay">
+        <div class="overlay-shell" style="max-width: 1080px;">
+          <div class="overlay-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h2 class="overlay-title" style="color: var(--gold-core); display: flex; align-items: center; gap: 10px;">
+                  <span>✨</span> PRESTIGE BASEPLATE & DIMENSIONAL TRANSCENDENCE
+                </h2>
+                <p class="overlay-desc">Second Major Reset Layer • 29 Canon Upgrades (#1p - #29p) • Multiverse Multipliers, Automation, and Reality Bending</p>
+              </div>
+              <div class="prestige-header-actions" style="display: flex; gap: 8px;">
+                <button class="hud-btn" id="prestigeBuyAllBtn" style="color: var(--gold-core); border-color: var(--gold-core); font-weight: 700; padding: 8px 14px;">
+                  ⚡ Buy All Affordable
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prestige Status Hero Banner -->
+          <div class="prestige-hero-card">
+            <div class="prestige-hero-balances">
+              <div class="prestige-stat-box">
+                <span class="ps-label">PRESTIGE BALANCE</span>
+                <div class="ps-val-row">
+                  <span class="ps-symbol">₹</span>
+                  <span class="ps-val" id="prestigeBaseplateBalance">0</span>
+                </div>
+                <span class="ps-sub">Spend on #1p – #29p Upgrades</span>
+              </div>
+              <div class="prestige-stat-box">
+                <span class="ps-label">LIFETIME PRESTIGES</span>
+                <span class="ps-val" id="prestigeLifetimeCount">0</span>
+                <span class="ps-sub" id="prestigePeakMatter">Peak: 0 ₽</span>
+              </div>
+            </div>
+
+            <div class="prestige-reset-box">
+              <div class="pr-header-row">
+                <span class="pr-title">DIMENSIONAL COLLAPSE STATUS</span>
+                <span class="pr-badge" id="prestigeReqBadge">Req: 10.00 Qd₽ (1e49)</span>
+              </div>
+              <div class="pr-progress-wrapper">
+                <div class="pr-progress-track">
+                  <div class="pr-progress-fill" id="prestigeProgressBar" style="width: 0%;"></div>
+                </div>
+                <div class="pr-progress-info">
+                  <span id="prestigeProgressCur">0 / 10.00 Qd₽</span>
+                  <span id="prestigeProgressPct">0.0%</span>
+                </div>
+              </div>
+              <div class="pr-action-row">
+                <div class="pr-gain-preview">
+                  Gain on Reset: <strong id="prestigeGainBaseplate" style="color: var(--gold-core); font-size: 16px;">+0 ₹</strong>
+                </div>
+                <button class="prestige-trigger-btn" id="prestigeTriggerActionBtn" disabled>
+                  <span>💥</span> TRIGGER PRESTIGE RESET
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Tabs -->
+          <div class="prestige-filter-row">
+            <div class="filter-chips-group" id="prestigeFilterChips">
+              <button class="filter-chip active" data-filter="all">All Upgrades (29)</button>
+              <button class="filter-chip" data-filter="unlock">Permanent Unlocks (8)</button>
+              <button class="filter-chip" data-filter="multi">Multipliers (11)</button>
+              <button class="filter-chip" data-filter="cosmic">Cosmic / Advanced (10)</button>
+            </div>
+            <span class="prestige-count-summary" id="prestigeOwnedSummary">0 / 29 Upgrades Owned</span>
+          </div>
+
+          <!-- The 29 Prestige Baseplate Node Cards Grid -->
+          <div class="prestige-cards-grid" id="prestigeCardsContainer">
+            <!-- Dynamically populated with rich interactive cards via main.js -->
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- Prestige Confirmation Modal -->
     <div class="modal-overlay" id="prestigeModal">
-      <div class="modal-card">
+      <div class="modal-card" style="max-width: 520px;">
         <h2 class="modal-title" style="color: var(--gold-core);">THE GREAT PRESTIGE RESET</h2>
-        <p class="modal-body">Collapsing your current matter and automation will transmute your empire into pure dimensional energy.</p>
-        <div class="modal-reward-highlight" id="prestigeGainPreview">+1 ₹</div>
-        <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 20px;">Unlock permanent multipliers, automation auto-buyers, and persistent perks.</p>
-        <div class="modal-actions">
-          <button class="modal-btn cancel-btn" id="closePrestigeBtn">Cancel</button>
+        <p class="modal-body">
+          Collapsing your current matter will transmute your empire into pure dimensional <strong>Prestige Points (₹)</strong>, unlocking massive multipliers, automation, and challenges on the Prestige Baseplate.
+        </p>
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-dim); border-radius: 8px; padding: 12px; margin: 14px 0;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">
+            <span>Threshold: 10.00 Qd₽ (1e49)</span>
+            <span id="modalPrestigeProgressPct">0.0%</span>
+          </div>
+          <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin: 6px 0;">
+            <div id="modalPrestigeProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ffb703, #00f0ff); transition: width 0.3s ease;"></div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); text-align: right; font-family: var(--font-mono);" id="modalPrestigeCurPoints">Current: 0 / 10.00 Qd₽</div>
+        </div>
+        <div class="modal-reward-highlight" id="prestigeGainPreview">+0 ₹</div>
+        <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 20px;">Wipes Points and Research progress. Retains all permanent baseplates and Prestige upgrades.</p>
+        <div class="modal-actions" style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+          <button class="modal-btn cancel-btn" id="closePrestigeBtn">Close</button>
+          <button class="modal-btn" id="openPrestigeBaseplateBtn" style="background: rgba(255, 183, 3, 0.15); border: 1px solid var(--gold-core); color: var(--gold-core);">View Baseplate</button>
           <button class="modal-btn confirm-btn" id="confirmPrestigeBtn">Trigger Prestige</button>
         </div>
       </div>
