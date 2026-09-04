@@ -17,12 +17,7 @@ class Decimal {
     }
 
     if (typeof mantissa === 'number') {
-      if (isNaN(mantissa)) {
-        this.m = 0;
-        this.e = 0;
-        return;
-      }
-      if (mantissa === 0) {
+      if (isNaN(mantissa) || mantissa === 0) {
         this.m = 0;
         this.e = 0;
         return;
@@ -60,7 +55,6 @@ class Decimal {
 
     this.m = sign * absM;
 
-    // Zero threshold
     if (this.e < -50) {
       this.m = 0;
       this.e = 0;
@@ -70,8 +64,54 @@ class Decimal {
   }
 
   static fromString(str) {
-    str = str.trim();
+    str = str.trim().replace(/,/g, '');
     if (!str || str === '0') return new Decimal(0, 0);
+
+    // Named number multipliers
+    const NAMES = {
+      'thousand': 3,
+      'k': 3,
+      'million': 6,
+      'm': 6,
+      'billion': 9,
+      'b': 9,
+      'trillion': 12,
+      't': 12,
+      'quadrillion': 15,
+      'qa': 15,
+      'quintillion': 18,
+      'qi': 18,
+      'sextillion': 21,
+      'sx': 21,
+      'septillion': 24,
+      'sp': 24,
+      'octillion': 27,
+      'oc': 27,
+      'nonillion': 30,
+      'no': 30,
+      'decillion': 33,
+      'undecillion': 36,
+      'duodecillion': 39,
+      'tredecillion': 42,
+      'quattuordecillion': 45,
+      'quindecillion': 48,
+      'sexdecillion': 51,
+      'septendecillion': 54,
+      'octodecillion': 57,
+      'novemdecillion': 60,
+      'vigintillion': 63,
+      'quinquinquagintillion': 168
+    };
+
+    // Check for "number name" format (e.g. "10 Nonillion")
+    const match = str.match(/^([\d\.]+)\s*([a-zA-Z]+)$/);
+    if (match) {
+      const val = parseFloat(match[1]);
+      const name = match[2].toLowerCase();
+      if (NAMES[name] !== undefined) {
+        return new Decimal(val, NAMES[name]);
+      }
+    }
 
     if (str.includes('e') || str.includes('E')) {
       const parts = str.split(/[eE]/);
@@ -182,6 +222,7 @@ class Decimal {
   lte(o) { return this.compare(o) <= 0; }
   eq(o) { return this.compare(o) === 0; }
   neq(o) { return this.compare(o) !== 0; }
+  isZero() { return this.m === 0; }
 
   static max(a, b) {
     const da = Decimal.fromValue(a);
@@ -205,7 +246,7 @@ class Decimal {
       return num.toFixed(decimals).replace(/\.?0+$/, '');
     }
 
-    if (notation === 'scientific' || (notation === 'standard' && this.e >= 93)) {
+    if (notation === 'scientific' || (notation === 'standard' && this.e >= 66)) {
       return `${this.m.toFixed(2)}e${this.e}`;
     }
 
@@ -216,11 +257,11 @@ class Decimal {
       return `${engM.toFixed(2)}e${engExp}`;
     }
 
-    // Standard Named Suffixes
+    // Extended Named Suffixes
     const SUFFIXES = [
       '', 'k', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No',
       'Dc', 'Ud', 'Dd', 'Td', 'Qad', 'Qid', 'Sxd', 'Spd', 'Ocd', 'Nod',
-      'Vg', 'Uvg', 'Dvg', 'Tvg', 'Qavg', 'Qivg', 'Sxvg', 'Spvg', 'Ocvg', 'Novg', 'Tg'
+      'Vg'
     ];
 
     const tier = Math.floor(this.e / 3);

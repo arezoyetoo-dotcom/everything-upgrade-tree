@@ -1248,3 +1248,762 @@ html, body {
   border: 1px solid var(--border-dim);
   color: #fff;
 }
+
+/* -------------------------------------------------------------
+   CANON EUT BASEPLATES & HUDS (Boombox, Leveling, Donation, Bonus, Records)
+   ------------------------------------------------------------- */
+
+/* Player Kinetic Mobility Badges in Top Bar */
+.mobility-pill-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(22, 19, 34, 0.9);
+  border: 1px solid var(--border-dim);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.stat-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.badge-icon {
+  font-size: 14px;
+}
+
+.badge-val {
+  color: var(--cyan-core);
+}
+
+/* Floating Mini-Boombox Widget on Canvas */
+.mini-boombox-widget {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(13, 11, 20, 0.92);
+  border: 1px solid var(--border-neon);
+  box-shadow: 0 8px 32px rgba(0, 240, 255, 0.2);
+  backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: 999px;
+  animation: floatWidget 4s infinite ease-in-out;
+}
+
+@keyframes floatWidget {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.mini-boombox-tape-anim {
+  font-size: 18px;
+}
+
+.mini-boombox-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-bb-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--gold-core);
+}
+
+.mini-bb-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.mini-visualizer-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+}
+
+.mini-visualizer-bars span {
+  width: 3px;
+  height: 40%;
+  background: var(--cyan-core);
+  border-radius: 1px;
+  transition: height 0.1s ease;
+}
+
+.mini-bb-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-dim);
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.mini-bb-btn:hover {
+  background: var(--cyan-core);
+  color: #000;
+  border-color: var(--cyan-core);
+}
+
+/* Boombox Deck Overlay */
+.boombox-deck-card {
+  background: rgba(18, 15, 28, 0.9);
+  border: 1px solid var(--border-dim);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cassette-deck-visual {
+  background: #08060d;
+  border: 2px solid #2d2640;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.8);
+}
+
+.cassette-reel {
+  width: 54px;
+  height: 54px;
+  border: 4px dashed #64748b;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.cassette-reel.playing {
+  animation: reelSpin 2s infinite linear;
+  border-color: var(--cyan-core);
+  color: var(--cyan-core);
+}
+
+@keyframes reelSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.cassette-window {
+  flex: 1;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.cassette-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--gold-core);
+}
+
+.cassette-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* Boombox Equalizer */
+.boombox-visualizer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  height: 60px;
+  background: rgba(8, 6, 14, 0.5);
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+
+.eq-bar {
+  flex: 1;
+  max-width: 24px;
+  height: 15%;
+  background: linear-gradient(to top, var(--cyan-core), var(--magenta-core));
+  border-radius: 3px 3px 0 0;
+  transition: height 0.08s ease;
+}
+
+/* Now Playing Info */
+.now-playing-box {
+  text-align: center;
+}
+
+.track-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.track-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 240, 255, 0.15);
+  color: var(--cyan-core);
+  border: 1px solid var(--border-neon);
+}
+
+.track-bpm {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold-core);
+}
+
+.track-current-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+.track-genre {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Boombox Controls */
+.boombox-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.bb-ctrl-btn {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-dim);
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bb-ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+}
+
+.bb-play-btn {
+  background: var(--cyan-core);
+  border-color: var(--cyan-core);
+  color: #000;
+  padding: 12px 28px;
+  font-size: 14px;
+}
+
+.bb-play-btn:hover {
+  background: #fff;
+  border-color: #fff;
+}
+
+.boombox-sliders-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: rgba(8, 6, 14, 0.4);
+  padding: 16px;
+  border-radius: 10px;
+}
+
+.bb-slider-group label {
+  display: block;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.bb-slider-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--cyan-core);
+}
+
+.tapes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.tape-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-dim);
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.tape-item:hover, .tape-item.active {
+  border-color: var(--cyan-core);
+  background: rgba(0, 240, 255, 0.08);
+}
+
+.tape-item-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tape-item-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+/* -------------------------------------------------------------
+   Leveling Center Styles (#16)
+   ------------------------------------------------------------- */
+.leveling-status-card {
+  background: rgba(18, 15, 28, 0.9);
+  border: 1px solid var(--border-dim);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.leveling-main-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: rgba(8, 6, 14, 0.6);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-dim);
+}
+
+.level-big-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.2) 0%, rgba(8, 6, 14, 0.9) 80%);
+  border: 2px solid var(--cyan-core);
+  box-shadow: 0 0 16px var(--cyan-glow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.level-circle-sub {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.level-circle-num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.leveling-bar-col {
+  flex: 1;
+}
+
+.xp-labels-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.xp-track-outer {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border-dim);
+}
+
+.xp-track-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan-core), var(--magenta-core));
+  transition: width 0.3s ease;
+  border-radius: 999px;
+}
+
+.xp-formula-info {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+.perk-points-counter-box {
+  text-align: center;
+  background: rgba(255, 183, 3, 0.1);
+  border: 1px solid var(--gold-glow);
+  padding: 12px 18px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.perk-pts-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--gold-core);
+}
+
+.perk-pts-val {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.perks-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.perk-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.perk-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.perk-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.perk-icon {
+  font-size: 22px;
+}
+
+.perk-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.perk-rank-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--cyan-core);
+}
+
+.perk-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.perk-bonus-preview {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold-core);
+}
+
+.perk-upgrade-btn {
+  margin-top: auto;
+  width: 100%;
+}
+
+/* -------------------------------------------------------------
+   Donation Baseplate Styles (#0d)
+   ------------------------------------------------------------- */
+.donation-container-card {
+  background: rgba(18, 15, 28, 0.9);
+  border: 1px solid var(--border-dim);
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+}
+
+.tip-jar-visual {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.hologram-jar {
+  font-size: 64px;
+  filter: drop-shadow(0 0 16px var(--gold-core));
+  animation: floatJar 3s infinite ease-in-out;
+}
+
+@keyframes floatJar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.donation-stats-summary {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.stat-box {
+  background: rgba(8, 6, 14, 0.6);
+  border: 1px solid var(--border-dim);
+  padding: 12px 20px;
+  border-radius: 10px;
+  min-width: 160px;
+}
+
+.stat-box-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.stat-box-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold-core);
+  margin-top: 4px;
+}
+
+.donation-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.tip-btn {
+  padding: 12px;
+  font-size: 12px;
+}
+
+.tip-all-btn {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.karmic-quote {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-dim);
+  margin-top: 24px;
+}
+
+/* -------------------------------------------------------------
+   Bonus Baseplate Styles (#18)
+   ------------------------------------------------------------- */
+.bonus-drop-card {
+  background: rgba(18, 15, 28, 0.9);
+  border: 1px solid var(--border-dim);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.bonus-pod-icon {
+  font-size: 60px;
+  filter: drop-shadow(0 0 16px var(--cyan-core));
+  margin-bottom: 16px;
+  animation: podPulse 2s infinite ease-in-out;
+}
+
+@keyframes podPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.bonus-status-banner {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--cyan-core);
+  margin-bottom: 20px;
+}
+
+.bonus-rewards-preview {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.reward-preview-item {
+  background: rgba(8, 6, 14, 0.6);
+  border: 1px solid var(--border-dim);
+  padding: 14px 24px;
+  border-radius: 10px;
+  min-width: 180px;
+}
+
+.reward-preview-title {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.reward-preview-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold-core);
+  margin-top: 4px;
+}
+
+.bonus-claim-btn {
+  padding: 14px 36px;
+  font-size: 15px;
+  background: var(--gold-core);
+  border-color: var(--gold-core);
+  color: #000;
+  font-weight: 800;
+}
+
+.bonus-claim-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bonus-cooldown-timer {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 14px;
+}
+
+/* -------------------------------------------------------------
+   Records & Hall of Fame Styles (#20)
+   ------------------------------------------------------------- */
+.records-card {
+  background: rgba(18, 15, 28, 0.9);
+  border: 1px solid var(--border-dim);
+  border-radius: 16px;
+  padding: 28px;
+}
+
+.callsign-editor-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(8, 6, 14, 0.6);
+  padding: 12px 18px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-dim);
+}
+
+.callsign-editor-bar label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.callsign-editor-bar input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-dim);
+  color: var(--cyan-core);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.records-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.record-metric-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-dim);
+  padding: 14px 18px;
+  border-radius: 10px;
+}
+
+.record-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.record-val {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 4px;
+}
+
+.hardcore-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 14px 18px;
+  border-radius: 10px;
+}

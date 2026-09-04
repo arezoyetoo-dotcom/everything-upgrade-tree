@@ -1,14 +1,13 @@
-// Everything Upgrade Tree - Infinite 2D Canvas & Constellation Renderer
+// Everything Upgrade Tree - Infinite 2D Canvas & Constellation Renderer (Canon EUT Edition)
 class InfiniteCanvas {
   constructor(containerEl, engine) {
     this.container = containerEl;
     this.engine = engine;
 
     // Viewport & Camera
-    this.camera = { x: 0, y: 0, zoom: 1.0 };
-    this.targetZoom = 1.0;
-    this.minZoom = 0.35;
-    this.maxZoom = 2.2;
+    this.camera = { x: 0, y: 120, zoom: 0.95 };
+    this.minZoom = 0.25;
+    this.maxZoom = 2.4;
 
     // Canvas & Contexts
     this.bgCanvas = document.getElementById('bgCanvas');
@@ -47,15 +46,15 @@ class InfiniteCanvas {
 
   initStars() {
     this.stars = [];
-    const count = 300;
+    const count = 350;
     for (let i = 0; i < count; i++) {
       this.stars.push({
-        x: (Math.random() - 0.5) * 6000,
-        y: (Math.random() - 0.5) * 6000,
+        x: (Math.random() - 0.5) * 7000,
+        y: Math.random() * 3000 - 600,
         size: Math.random() * 1.8 + 0.5,
         alpha: Math.random() * 0.7 + 0.2,
         twinkleSpeed: Math.random() * 0.03 + 0.01,
-        color: ['#00f0ff', '#ffffff', '#ffb703', '#7209b7', '#38bdf8'][Math.floor(Math.random() * 5)]
+        color: ['#00f0ff', '#ffffff', '#ffb703', '#7209b7', '#38bdf8', '#f72585'][Math.floor(Math.random() * 6)]
       });
     }
   }
@@ -78,7 +77,6 @@ class InfiniteCanvas {
 
     // Mouse Drag Pan
     this.container.addEventListener('mousedown', (e) => {
-      // Don't drag if clicking directly on an active interactive button inside a node
       if (e.target.closest('.node-element') && !e.target.classList.contains('node-drag-handle')) {
         return;
       }
@@ -117,14 +115,10 @@ class InfiniteCanvas {
       const mouseX = e.clientX - this.container.offsetLeft;
       const mouseY = e.clientY - this.container.offsetTop;
 
-      // World point under cursor before zoom
       const worldBefore = this.screenToWorld(mouseX, mouseY);
-
-      // Apply zoom limits
       const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.camera.zoom * zoomFactor));
       this.camera.zoom = newZoom;
 
-      // Adjust camera so mouse cursor stays on the same world coordinate
       const worldAfter = this.screenToWorld(mouseX, mouseY);
       this.camera.x -= (worldAfter.x - worldBefore.x);
       this.camera.y -= (worldAfter.y - worldBefore.y);
@@ -132,7 +126,7 @@ class InfiniteCanvas {
       this.render();
     }, { passive: false });
 
-    // Touch Support (Single touch pan, pinch zoom)
+    // Touch Support
     let touchDist = 0;
     this.container.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
@@ -195,10 +189,11 @@ class InfiniteCanvas {
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
 
-      // Minimap spans -1200 to +1200
-      const mapRange = 2400;
-      const targetWorldX = (mx / this.minimapCanvas.width - 0.5) * mapRange;
-      const targetWorldY = (my / this.minimapCanvas.height - 0.5) * mapRange;
+      // Minimap bounds: x: -700 to +700, y: -200 to 1800
+      const mapW = 1600;
+      const mapH = 2200;
+      const targetWorldX = (mx / this.minimapCanvas.width - 0.5) * mapW;
+      const targetWorldY = (my / this.minimapCanvas.height) * mapH - 200;
 
       this.camera.x = targetWorldX;
       this.camera.y = targetWorldY;
@@ -226,17 +221,23 @@ class InfiniteCanvas {
 
   centerCamera() {
     this.camera.x = 0;
-    this.camera.y = 0;
+    this.camera.y = 120;
     this.camera.zoom = 1.0;
     this.render();
   }
 
-  focusNode(nodeId) {
-    const def = NODE_DEFS[nodeId];
-    if (def) {
-      this.camera.x = def.x;
-      this.camera.y = def.y;
-      this.render();
+  getCurrencySymbol(currency) {
+    switch (currency) {
+      case 'matter': return '₽';
+      case 'research': return 'λ';
+      case 'prestige': return '₹';
+      case 'transcend': return 'τ';
+      case 'bits': return '฿';
+      case 'pointX': return '₽X';
+      case 'qubits': return 'Ψ';
+      case 'starMass': return '☉';
+      case 'euros': return '€';
+      default: return '₽';
     }
   }
 
@@ -258,19 +259,19 @@ class InfiniteCanvas {
   }
 
   triggerSingularityClick() {
-    const singDef = NODE_DEFS['singularity'];
-    const sPos = this.worldToScreen(singDef.x, singDef.y);
+    const sDef = NODE_DEFS['node_1'];
+    const sPos = this.worldToScreen(sDef.x, sDef.y);
     const res = this.engine.clickSingularity();
 
     if (window.soundEngine) {
       window.soundEngine.playClick();
     }
 
-    const txt = res.isCrit ? `CRIT! +${res.amount.format(1)}` : `+${res.amount.format(1)}`;
+    const txt = `+${res.amount.format(1)} ₽` + (res.xp > 1 ? ` (+${res.xp} XP)` : '');
     this.spawnFloatingText(txt, sPos.x, sPos.y, res.isCrit);
 
     // Depress node physically
-    const singEl = document.querySelector('.node-element[data-node="singularity"]');
+    const singEl = document.querySelector('.node-element[data-node="node_1"]');
     if (singEl) {
       singEl.classList.add('node-depressed');
       setTimeout(() => singEl.classList.remove('node-depressed'), 80);
@@ -284,7 +285,7 @@ class InfiniteCanvas {
   // -------------------------------------------------------------
   update(dt) {
     // Keyboard Pan smooth inertia
-    const panSpeed = 600 * dt / this.camera.zoom;
+    const panSpeed = 700 * dt / this.camera.zoom;
     if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.camera.x -= panSpeed;
     if (this.keys['KeyD'] || this.keys['ArrowRight']) this.camera.x += panSpeed;
     if (this.keys['KeyW'] || this.keys['ArrowUp']) this.camera.y -= panSpeed;
@@ -312,7 +313,7 @@ class InfiniteCanvas {
     this.renderMinimap();
   }
 
-  // 1. Parallax Cosmic Background
+  // 1. Cosmic Parallax Background
   renderBackground() {
     const w = this.bgCanvas.width;
     const h = this.bgCanvas.height;
@@ -331,11 +332,9 @@ class InfiniteCanvas {
     // Parallax Starfield
     ctx.save();
     for (const star of this.stars) {
-      // Parallax offset based on camera
-      const sx = (star.x - this.camera.x * 0.4) * this.camera.zoom + w / 2;
-      const sy = (star.y - this.camera.y * 0.4) * this.camera.zoom + h / 2;
+      const sx = (star.x - this.camera.x * 0.35) * this.camera.zoom + w / 2;
+      const sy = (star.y - this.camera.y * 0.35) * this.camera.zoom + h / 2;
 
-      // Wrap around screen boundaries for infinite feel
       const modX = ((sx % w) + w) % w;
       const modY = ((sy % h) + h) % h;
 
@@ -368,11 +367,11 @@ class InfiniteCanvas {
       ctx.stroke();
     }
 
-    // Origin crosshair
+    // Origin crosshair (#1 Generic beginning)
     const origin = this.worldToScreen(0, 0);
     ctx.strokeStyle = 'rgba(255, 183, 3, 0.2)';
     ctx.beginPath();
-    ctx.arc(origin.x, origin.y, 14 * this.camera.zoom, 0, Math.PI * 2);
+    ctx.arc(origin.x, origin.y, 16 * this.camera.zoom, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
@@ -403,10 +402,9 @@ class InfiniteCanvas {
 
         ctx.save();
         if (isChildActive) {
-          // Solid, thick glowing neon energy line
           ctx.strokeStyle = '#00f0ff';
           ctx.lineWidth = Math.max(2.5, 3.5 * this.camera.zoom);
-          ctx.shadowColor = 'rgba(0, 240, 255, 0.7)';
+          ctx.shadowColor = 'rgba(0, 240, 255, 0.75)';
           ctx.shadowBlur = 10 * this.camera.zoom;
 
           ctx.beginPath();
@@ -414,7 +412,7 @@ class InfiniteCanvas {
           ctx.lineTo(p2.x, p2.y);
           ctx.stroke();
 
-          // Animated energy pulse particle flowing from parent to child
+          // Animated energy pulse particle flowing along connection wire
           const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
           if (dist > 10) {
             const progress = (this.linePulseTime % 1.0);
@@ -429,7 +427,6 @@ class InfiniteCanvas {
             ctx.fill();
           }
         } else {
-          // Unpurchased line: dashed, dim, anticipation
           ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
           ctx.lineWidth = Math.max(1.5, 2 * this.camera.zoom);
           ctx.setLineDash([8 * this.camera.zoom, 6 * this.camera.zoom]);
@@ -444,7 +441,7 @@ class InfiniteCanvas {
     });
   }
 
-  // 3. Physical DOM / Canvas Nodes
+  // 3. Physical DOM Nodes
   renderNodes() {
     const existingNodeEls = this.nodeLayer.querySelectorAll('.node-element');
     const existingMap = new Map();
@@ -455,7 +452,6 @@ class InfiniteCanvas {
       const isUnlocked = this.engine.isNodeUnlocked(nodeId);
 
       if (!isUnlocked) {
-        // Remove from DOM if hidden
         if (existingMap.has(nodeId)) {
           existingMap.get(nodeId).remove();
         }
@@ -464,7 +460,8 @@ class InfiniteCanvas {
 
       const sPos = this.worldToScreen(def.x, def.y);
       const level = this.engine.upgrades[nodeId] || 0;
-      const isMaxed = def.maxLevel > 0 && level >= def.maxLevel;
+      const maxLvl = this.engine.getNodeMaxLevel(nodeId);
+      const isMaxed = maxLvl > 0 && level >= maxLvl;
       const canAfford = this.engine.canAffordNode(nodeId);
 
       let el = existingMap.get(nodeId);
@@ -473,10 +470,8 @@ class InfiniteCanvas {
         this.nodeLayer.appendChild(el);
       }
 
-      // Position and Scale
       el.style.transform = `translate3d(${sPos.x}px, ${sPos.y}px, 0) translate(-50%, -50%) scale(${this.camera.zoom})`;
 
-      // Update State Classes
       el.classList.toggle('node-affordable', canAfford && !isMaxed);
       el.classList.toggle('node-maxed', isMaxed);
       el.classList.toggle('node-locked', !canAfford && !isMaxed);
@@ -489,10 +484,10 @@ class InfiniteCanvas {
           lvlBadge.textContent = 'CORE';
         } else if (isMaxed) {
           lvlBadge.textContent = 'MAX';
-        } else if (def.maxLevel > 0) {
-          lvlBadge.textContent = `${level}/${def.maxLevel}`;
+        } else if (maxLvl > 1) {
+          lvlBadge.textContent = `${level}/${maxLvl}`;
         } else {
-          lvlBadge.textContent = `LVL ${level}`;
+          lvlBadge.textContent = level > 0 ? 'ACTIVE' : 'LOCKED';
         }
       }
 
@@ -500,10 +495,10 @@ class InfiniteCanvas {
       const costBadge = el.querySelector('.node-cost-text');
       if (costBadge) {
         if (isMaxed || def.isManualClicker) {
-          costBadge.textContent = isMaxed ? 'COMPLETED' : 'CLICK ME';
+          costBadge.textContent = isMaxed ? 'OWNED' : 'FREE';
         } else {
           const cost = this.engine.getNodeCost(nodeId);
-          const symbol = def.currency === 'matter' ? '₽' : (def.currency === 'research' ? 'λ' : (def.currency === 'prestige' ? '₹' : 'τ'));
+          const symbol = this.getCurrencySymbol(def.currency);
           costBadge.textContent = `${cost.format(1)} ${symbol}`;
         }
       }
@@ -516,13 +511,14 @@ class InfiniteCanvas {
     el.dataset.node = nodeId;
     el.dataset.category = def.category;
 
-    const currencySymbol = def.currency === 'matter' ? '₽' : (def.currency === 'research' ? 'λ' : (def.currency === 'prestige' ? '₹' : 'τ'));
+    const currencySymbol = this.getCurrencySymbol(def.currency);
 
     el.innerHTML = `
       <div class="node-halo"></div>
       <div class="node-shell">
         <div class="node-icon">${def.icon}</div>
         <div class="node-body">
+          <div class="node-num-tag">${def.num}</div>
           <div class="node-title">${def.name}</div>
           <div class="node-meta">
             <span class="node-lvl-badge node-lvl-text">LVL 0</span>
@@ -531,46 +527,65 @@ class InfiniteCanvas {
         </div>
       </div>
       <div class="node-tooltip">
-        <div class="tt-tag">${def.tag || 'UPGRADE'}</div>
+        <div class="tt-tag">${def.num} • ${def.tag || 'UPGRADE'}</div>
         <div class="tt-title">${def.name}</div>
         <div class="tt-lore">${def.lore}</div>
         <div class="tt-divider"></div>
-        <div class="tt-effect" id="tt-effect-${nodeId}">Effect: ${typeof def.effectDescription === 'function' ? def.effectDescription(this.engine.upgrades[nodeId] || 0) : def.effectDescription}</div>
+        <div class="tt-effect" id="tt-effect-${nodeId}">Effect: ${typeof def.effectDescription === 'function' ? def.effectDescription(this.engine.upgrades[nodeId] || 0, this.engine) : def.effectDescription}</div>
       </div>
     `;
 
-    // Click behavior
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       if (def.isManualClicker) {
         this.triggerSingularityClick();
       } else {
+        const curLvl = this.engine.upgrades[nodeId] || 0;
+        const maxLvl = this.engine.getNodeMaxLevel(nodeId);
+
+        // If already purchased / maxed, clicking opens interactive center
+        if (maxLvl > 0 && curLvl >= maxLvl) {
+          if (nodeId === 'node_0d' && window.openDonationModal) return window.openDonationModal();
+          if (nodeId === 'node_9' && window.openBoomboxModal) return window.openBoomboxModal();
+          if (nodeId === 'node_16' && window.openLevelingModal) return window.openLevelingModal();
+          if (nodeId === 'node_18' && window.openBonusModal) return window.openBonusModal();
+          if (nodeId === 'node_20' && window.openLeaderboardModal) return window.openLeaderboardModal();
+          if (nodeId === 'node_40' && window.openHardcoreModal) return window.openHardcoreModal();
+        }
+
         const bought = this.engine.buyNode(nodeId);
         if (bought) {
           if (window.soundEngine) {
-            const isNowMaxed = def.maxLevel > 0 && this.engine.upgrades[nodeId] >= def.maxLevel;
+            const newLvl = this.engine.upgrades[nodeId] || 0;
+            const isNowMaxed = maxLvl > 0 && newLvl >= maxLvl;
             if (isNowMaxed) window.soundEngine.playMaxed();
             else window.soundEngine.playBuy();
           }
 
-          // Node bounce animation
           el.classList.add('node-purchased-pulse');
           setTimeout(() => el.classList.remove('node-purchased-pulse'), 250);
 
           const sPos = this.worldToScreen(def.x, def.y);
-          this.spawnFloatingText('UPGRADED! ✦', sPos.x, sPos.y, false);
+          this.spawnFloatingText('UNLOCKED! ✦', sPos.x, sPos.y, false);
 
           this.render();
+
+          // Auto-launch interactive modal upon purchase
+          if (nodeId === 'node_0d' && window.openDonationModal) setTimeout(window.openDonationModal, 300);
+          if (nodeId === 'node_9' && window.openBoomboxModal) setTimeout(window.openBoomboxModal, 300);
+          if (nodeId === 'node_16' && window.openLevelingModal) setTimeout(window.openLevelingModal, 300);
+          if (nodeId === 'node_18' && window.openBonusModal) setTimeout(window.openBonusModal, 300);
+          if (nodeId === 'node_20' && window.openLeaderboardModal) setTimeout(window.openLeaderboardModal, 300);
+          if (nodeId === 'node_40' && window.openHardcoreModal) setTimeout(window.openHardcoreModal, 300);
         }
       }
     });
 
-    // Dynamic Tooltip update on mouseenter
     el.addEventListener('mouseenter', () => {
       const effectEl = el.querySelector('#tt-effect-' + nodeId);
       if (effectEl) {
         const lvl = this.engine.upgrades[nodeId] || 0;
-        effectEl.textContent = 'Effect: ' + (typeof def.effectDescription === 'function' ? def.effectDescription(lvl) : def.effectDescription);
+        effectEl.textContent = 'Effect: ' + (typeof def.effectDescription === 'function' ? def.effectDescription(lvl, this.engine) : def.effectDescription);
       }
     });
 
@@ -599,29 +614,25 @@ class InfiniteCanvas {
     const h = this.minimapCanvas.height;
 
     ctx.clearRect(0, 0, w, h);
-
-    // Minimap background
     ctx.fillStyle = '#08070d';
     ctx.fillRect(0, 0, w, h);
 
-    // Map range is -1200 to +1200
-    const mapRange = 2400;
-    const scale = w / mapRange;
+    const mapW = 1600;
+    const mapH = 2200;
+    const scaleX = w / mapW;
+    const scaleY = h / mapH;
 
-    // Center crosshair
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.beginPath();
     ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
-    ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
     ctx.stroke();
 
-    // Render unlocked nodes
     Object.keys(NODE_DEFS).forEach(id => {
       if (!this.engine.isNodeUnlocked(id)) return;
       const def = NODE_DEFS[id];
 
-      const mx = (def.x / mapRange + 0.5) * w;
-      const my = (def.y / mapRange + 0.5) * h;
+      const mx = (def.x / mapW + 0.5) * w;
+      const my = ((def.y + 200) / mapH) * h;
 
       ctx.fillStyle = def.isManualClicker ? '#ffb703' : (def.currency === 'matter' ? '#00f0ff' : (def.currency === 'research' ? '#f72585' : '#7209b7'));
       ctx.beginPath();
@@ -630,10 +641,10 @@ class InfiniteCanvas {
     });
 
     // Viewport camera frustum box
-    const cw = (this.container.clientWidth / this.camera.zoom) * scale;
-    const ch = (this.container.clientHeight / this.camera.zoom) * scale;
-    const cx = (this.camera.x / mapRange + 0.5) * w - cw / 2;
-    const cy = (this.camera.y / mapRange + 0.5) * h - ch / 2;
+    const cw = (this.container.clientWidth / this.camera.zoom) * scaleX;
+    const ch = (this.container.clientHeight / this.camera.zoom) * scaleY;
+    const cx = (this.camera.x / mapW + 0.5) * w - cw / 2;
+    const cy = ((this.camera.y + 200) / mapH) * h - ch / 2;
 
     ctx.strokeStyle = '#00f0ff';
     ctx.lineWidth = 1;
