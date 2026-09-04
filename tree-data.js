@@ -2,7 +2,11 @@
 // Based on https://everything-upgrade-tree.fandom.com/wiki/Everything_Upgrade_Tree_Wiki
 
 if (typeof D === 'undefined' && typeof require !== 'undefined') {
-  var { D, Decimal } = require('./decimal.js');
+  const _dec = require('./decimal.js');
+  if (typeof globalThis !== 'undefined') {
+    globalThis.D = _dec.D;
+    globalThis.Decimal = _dec.Decimal;
+  }
 }
 
 const NODE_DEFS = {

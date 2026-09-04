@@ -217,20 +217,24 @@ class InfiniteCanvas {
   screenToWorld(sx, sy) {
     const w = this.container.clientWidth || window.innerWidth || 1200;
     const h = this.container.clientHeight || (window.innerHeight - 64) || 800;
-    const zoom = this.camera.zoom || 1.0;
+    const cx = isNaN(this.camera.x) ? 0 : this.camera.x;
+    const cy = isNaN(this.camera.y) ? 0 : this.camera.y;
+    const zoom = (isNaN(this.camera.zoom) || !this.camera.zoom) ? 1.0 : this.camera.zoom;
     return {
-      x: (sx - w / 2) / zoom + this.camera.x,
-      y: (sy - h / 2) / zoom + this.camera.y
+      x: (sx - w / 2) / zoom + cx,
+      y: (sy - h / 2) / zoom + cy
     };
   }
 
   worldToScreen(wx, wy) {
     const w = this.container.clientWidth || window.innerWidth || 1200;
     const h = this.container.clientHeight || (window.innerHeight - 64) || 800;
-    const zoom = this.camera.zoom || 1.0;
+    const cx = isNaN(this.camera.x) ? 0 : this.camera.x;
+    const cy = isNaN(this.camera.y) ? 0 : this.camera.y;
+    const zoom = (isNaN(this.camera.zoom) || !this.camera.zoom) ? 1.0 : this.camera.zoom;
     return {
-      x: (wx - this.camera.x) * zoom + w / 2,
-      y: (wy - this.camera.y) * zoom + h / 2
+      x: (wx - cx) * zoom + w / 2,
+      y: (wy - cy) * zoom + h / 2
     };
   }
 
@@ -322,6 +326,11 @@ class InfiniteCanvas {
   // Update Loop
   // -------------------------------------------------------------
   update(dt) {
+    if (isNaN(dt) || dt <= 0) dt = 0.016;
+    if (isNaN(this.camera.x)) this.camera.x = 0;
+    if (isNaN(this.camera.y)) this.camera.y = 0;
+    if (!this.camera.zoom || isNaN(this.camera.zoom)) this.camera.zoom = 1.0;
+
     // Keyboard camera panning
     const panSpeed = (360 / this.camera.zoom) * dt;
     if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.camera.x -= panSpeed;

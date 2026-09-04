@@ -1,7 +1,7 @@
 // Decimal Math Engine for Infinite Exponential Incremental Games
 // Supports numbers up to 10^(1,000,000,000) with precision and high performance
 
-class Decimal {
+var Decimal = class Decimal {
   constructor(mantissa = 0, exponent = 0) {
     if (mantissa instanceof Decimal) {
       this.m = mantissa.m;
@@ -281,13 +281,22 @@ class Decimal {
 }
 
 // Global factory helper
-function D(val, exp = 0) {
+var D = function D(val, exp = 0) {
   return new Decimal(val, exp);
-}
+};
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { Decimal, D };
-} else {
+if (typeof globalThis !== 'undefined') {
+  globalThis.Decimal = Decimal;
+  globalThis.D = D;
+}
+if (typeof window !== 'undefined') {
   window.Decimal = Decimal;
   window.D = D;
+}
+if (typeof global !== 'undefined') {
+  global.Decimal = Decimal;
+  global.D = D;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { Decimal, D };
 }

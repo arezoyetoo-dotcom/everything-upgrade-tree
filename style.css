@@ -301,14 +301,18 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
+  width: 140px;
+  height: auto;
   pointer-events: auto;
   cursor: pointer;
   transform-origin: center center;
   transition: filter 0.2s ease, transform 0.08s ease;
+  z-index: 5;
+  display: block;
 }
 
 .node-shell {
-  width: 130px;
+  width: 100%;
   background: var(--bg-panel);
   border: 1.5px solid var(--border-neon);
   border-radius: 10px;

@@ -1,7 +1,12 @@
 // Everything Upgrade Tree - Core Game Engine (Canon EUT Edition)
 
-var Decimal = (typeof window !== 'undefined' && window.Decimal) ? window.Decimal : (typeof global !== 'undefined' && global.Decimal) ? global.Decimal : (typeof require !== 'undefined' ? require('./decimal.js').Decimal : null);
-var D = (typeof window !== 'undefined' && window.D) ? window.D : (typeof global !== 'undefined' && global.D) ? global.D : (typeof require !== 'undefined' ? require('./decimal.js').D : function(v, e) { return new Decimal(v, e); });
+if (typeof D === 'undefined' && typeof require !== 'undefined') {
+  const _dec = require('./decimal.js');
+  if (typeof globalThis !== 'undefined') {
+    globalThis.D = _dec.D;
+    globalThis.Decimal = _dec.Decimal;
+  }
+}
 
 function getNodeDefs() {
   if (typeof NODE_DEFS !== 'undefined') return NODE_DEFS;

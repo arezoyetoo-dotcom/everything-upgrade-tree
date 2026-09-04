@@ -38,15 +38,15 @@ class SoundEngine {
 
   ensureContext() {
     if (!this.initialized) this.init();
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+    if (this.ctx && typeof this.ctx.resume === 'function' && this.ctx.state === 'suspended') {
+      try { this.ctx.resume(); } catch (e) {}
     }
+    return !!(this.ctx && typeof this.ctx.createOscillator === 'function');
   }
 
   playClick() {
     if (this.muted) return;
-    this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ensureContext()) return;
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -68,8 +68,7 @@ class SoundEngine {
 
   playBuy() {
     if (this.muted) return;
-    this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ensureContext()) return;
 
     const t = this.ctx.currentTime;
     [523.25, 783.99].forEach((freq, idx) => {
@@ -93,8 +92,7 @@ class SoundEngine {
 
   playMaxed() {
     if (this.muted) return;
-    this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ensureContext()) return;
 
     const t = this.ctx.currentTime;
     [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
@@ -118,8 +116,7 @@ class SoundEngine {
 
   playPrestige() {
     if (this.muted) return;
-    this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ensureContext()) return;
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -141,8 +138,7 @@ class SoundEngine {
 
   playMine() {
     if (this.muted) return;
-    this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ensureContext()) return;
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -164,8 +160,7 @@ class SoundEngine {
 
   playCard() {
     if (this.muted) return;
-    this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ensureContext()) return;
 
     const t = this.ctx.currentTime;
     [880, 1108.73, 1318.51].forEach((f, i) => {
@@ -188,8 +183,7 @@ class SoundEngine {
   }
 
   toggleDrone() {
-    this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ensureContext()) return;
 
     if (this.droneActive) {
       if (this.droneGain) {
@@ -251,8 +245,7 @@ class SoundEngine {
   // Generative Procedural Boombox Audio (#9)
   // -------------------------------------------------------------
   playBoombox() {
-    this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ensureContext()) return;
     this.boomboxPlaying = true;
     if (this.boomboxTimer) clearInterval(this.boomboxTimer);
 

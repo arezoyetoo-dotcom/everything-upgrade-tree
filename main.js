@@ -1054,8 +1054,15 @@ ${pulled.desc}`);
   }
 
   // -------------------------------------------------------------
-  // 14. Sound FX & Drone Toggles
+  // 14. Sound FX, Drone & Camera Controls
   // -------------------------------------------------------------
+  const centerCamBtn = document.getElementById('centerCamBtn');
+  if (centerCamBtn) {
+    centerCamBtn.addEventListener('click', () => {
+      canvasRenderer.centerCamera();
+    });
+  }
+
   const droneToggleBtn = document.getElementById('droneToggleBtn');
   const soundToggleBtn = document.getElementById('soundToggleBtn');
 
@@ -1086,7 +1093,8 @@ ${pulled.desc}`);
   function gameLoop(now) {
     requestAnimationFrame(gameLoop);
 
-    const dt = Math.min(0.2, (now - lastFrameTime) / 1000);
+    const rawDelta = (now - lastFrameTime) / 1000;
+    const dt = isNaN(rawDelta) || rawDelta <= 0 ? 0.016 : Math.min(0.2, rawDelta);
     lastFrameTime = now;
 
     // Tick Game Logic
