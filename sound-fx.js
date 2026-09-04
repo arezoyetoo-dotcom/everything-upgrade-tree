@@ -44,7 +44,7 @@ class SoundEngine {
     return !!(this.ctx && typeof this.ctx.createOscillator === 'function');
   }
 
-  playClick() {
+  playClick(comboMult = 1.0, isCrit = false) {
     if (this.muted) return;
     if (!this.ensureContext()) return;
 
@@ -52,18 +52,85 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    const freq = 480 + Math.random() * 80;
+    // Scale pitch based on combo frenzy (from 480Hz up to 1100Hz)
+    const pitchFactor = 1.0 + Math.min(2.0, (comboMult - 1.0) * 0.45);
+    const freq = (460 + Math.random() * 60) * pitchFactor;
     osc.frequency.setValueAtTime(freq, t);
-    osc.frequency.exponentialRampToValueAtTime(80, t + 0.04);
+    osc.frequency.exponentialRampToValueAtTime(80 * pitchFactor, t + 0.045);
 
-    gain.gain.setValueAtTime(0.3 * this.sfxVolume, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    gain.gain.setValueAtTime((isCrit ? 0.5 : 0.3) * this.sfxVolume, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + (isCrit ? 0.08 : 0.045));
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(t);
-    osc.stop(t + 0.04);
+    osc.stop(t + (isCrit ? 0.08 : 0.045));
+
+    // Extra punchy resonant layer on Critical Hits
+    if (isCrit) {
+      const critOsc = this.ctx.createOscillator();
+      const critGain = this.ctx.createGain();
+      critOsc.type = 'triangle';
+      critOsc.frequency.setValueAtTime(1200, t);
+      critOsc.frequency.exponentialRampToValueAtTime(300, t + 0.12);
+
+      critGain.gain.setValueAtTime(0.4 * this.sfxVolume, t);
+      critGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+
+      critOsc.connect(critGain);
+      critGain.connect(this.ctx.destination);
+      critOsc.start(t);
+      critOsc.stop(t + 0.12);
+    }
+  }
+
+  playConvert() {
+    if (this.muted) return;
+    if (!this.ensureContext()) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(580, t + 0.22);
+    osc.frequency.exponentialRampToValueAtTime(220, t + 0.45);
+
+    gain.gain.setValueAtTime(0.35 * this.sfxVolume, t);
+    gain.gain.linearRampToValueAtTime(0.5 * this.sfxVolume, t + 0.22);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(t);
+    osc.stop(t + 0.45);
+  }
+
+  playSecretUnlock() {
+    if (this.muted) return;
+    if (!this.ensureContext()) return;
+
+    const t = this.ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((freq, idx) => {
+      const start = t + idx * 0.07;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+
+      gain.gain.setValueAtTime(0.3 * this.sfxVolume, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(start);
+      osc.stop(start + 0.35);
+    });
   }
 
   playBuy() {

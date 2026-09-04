@@ -180,14 +180,19 @@ var Decimal = class Decimal {
     if (p === 0) return new Decimal(1, 0);
     if (this.m === 0) return new Decimal(0, 0);
 
-    const newE = this.e * p;
-    const newM = Math.pow(this.m, p);
-
-    if (isFinite(newM)) {
-      return new Decimal(newM, Math.floor(newE));
+    // If power is an integer and within reasonable bounds, calculate directly to preserve exact integer results
+    if (Number.isInteger(p) && Math.abs(p) <= 1000) {
+      const newE = this.e * p;
+      const newM = Math.pow(this.m, p);
+      if (isFinite(newM) && newM > 0) {
+        return new Decimal(newM, newE);
+      }
     }
 
     const log10Val = (Math.log10(this.m) + this.e) * p;
+    if (!isFinite(log10Val)) {
+      return log10Val > 0 ? new Decimal(Infinity) : new Decimal(0, 0);
+    }
     const targetE = Math.floor(log10Val);
     const targetM = Math.pow(10, log10Val - targetE);
     return new Decimal(targetM, targetE);

@@ -57,10 +57,25 @@ class GameEngine {
       jumpPower: 50
     };
 
+    // Badges & Obscurity Achievements
+    this.badges = {
+      research: false,
+      beyondAnalysis: false,
+      firstPrestige: false,
+      lofiListener: false,
+      masterArchitect: false
+    };
+
     // Statistics & Timers
     this.stats = {
       callsign: 'ASTRAL_EXPLORER_01',
       totalClicks: 0,
+      clickCombo: 0,
+      clickComboTimer: 0,
+      comboMultiplier: 1.0,
+      critChance: 0.10,
+      critMultiplier: 3.0,
+      researchConversions: 0,
       totalPrestiges: 0,
       totalTranscensions: 0,
       startTime: Date.now(),
@@ -124,10 +139,20 @@ class GameEngine {
       if (this.upgrades['node_7']) cap += 7;
       if (this.upgrades['node_15']) cap += 30;
       if (this.upgrades['node_30']) cap += 250;
+      if (this.upgrades['node_rc_materialize_4']) cap += 1;
       return cap;
     }
     const def = this.getNodeDef(nodeId);
-    return def ? def.maxLevel : 1;
+    let cap = def ? def.maxLevel : 1;
+    if (nodeId === 'node_1' && this.upgrades['node_rc_materialize_1']) cap += 1;
+    if (nodeId === 'node_1' && this.upgrades['node_rc_materialize_1b']) cap += 1;
+    if ((nodeId === 'node_2' || nodeId === 'node_3') && this.upgrades['node_rc_materialize_2']) cap += 1;
+    if ((nodeId === 'node_5' || nodeId === 'node_6') && this.upgrades['node_rc_materialize_3']) cap += 1;
+    if ((nodeId === 'node_7' || nodeId === 'node_8') && this.upgrades['node_rc_materialize_4']) cap += 1;
+    if (nodeId === 'node_10' && this.upgrades['node_rc_materialize_5']) cap += 1;
+    if (nodeId === 'node_12' && this.upgrades['node_rc_materialize_5']) cap += 5;
+    if (nodeId === 'node_rc_point_gain_5' && this.upgrades['node_rc_extender']) cap += (this.upgrades['node_rc_extender'] * 100);
+    return cap;
   }
 
   getNodeCost(nodeId) {
@@ -371,36 +396,46 @@ class GameEngine {
         pts = pts.pow(1.05);
       }
 
+      // --- Research Center Machine Multipliers ---
+      const rcPg1 = this.upgrades['node_rc_point_gain'] || 0;
+      if (rcPg1 > 0) pts = pts.mul(D(1).add(D(rcPg1).mul(1.0)));
+
+      const rcPg2 = this.upgrades['node_rc_point_gain_2'] || 0;
+      if (rcPg2 > 0) pts = pts.mul(D(1).add(D(rcPg2).mul(0.1)));
+
+      const rcPg3 = this.upgrades['node_rc_point_gain_3'] || 0;
+      if (rcPg3 > 0) pts = pts.mul(D(1).add(D(rcPg3).mul(0.01)));
+
+      const rcPg4 = this.upgrades['node_rc_point_gain_4'] || 0;
+      if (rcPg4 > 0) pts = pts.mul(D(1).add(D(rcPg4).mul(0.01)));
+
+      const rcPg5 = this.upgrades['node_rc_point_gain_5'] || 0;
+      if (rcPg5 > 0) pts = pts.mul(D(1).add(D(rcPg5).mul(0.01)));
+
+      const rcPg6 = this.upgrades['node_rc_point_gain_6'] || 0;
+      if (rcPg6 > 0) pts = pts.mul(D(1).add(D(rcPg6).mul(0.5)));
+
+      const rcPg1b = this.upgrades['node_rc_point_gain_1b'] || 0;
+      if (rcPg1b > 0) pts = pts.mul(D(2).pow(rcPg1b));
+
+      const rcPgx = this.upgrades['node_rc_point_gain_x'] || 0;
+      if (rcPgx > 0) pts = pts.mul(D(1).add(D(rcPgx).mul(0.1)));
+
+      // Secret Beyond Analysis (+x100QnDe multiplier boost)
+      if (this.upgrades['secret_beyond_analysis']) {
+        pts = pts.mul(D('1e60'));
+      }
+
       this.rates.matterPerSec = pts;
     } else {
       this.rates.matterPerSec = D(0);
     }
 
-    // 3. Research Points (λ) Rate
-    if (this.upgrades['node_8']) {
-      let res = D(1);
-      if (this.upgrades['node_19']) res = res.mul(3);
-
-      if (this.player.perks.researchSpeed > 0) {
-        res = res.mul(1 + this.player.perks.researchSpeed * 0.1);
-      }
-
-      // #2p rocket shot: +0.5x λ gain per level
-      const lvl2p = this.upgrades['node_2p'] || 0;
-      if (lvl2p > 0) {
-        res = res.mul(D(1).add(D(lvl2p).mul(0.5)));
-      }
-
-      // #4p duping IQ: x2 λ gain per level compounding
-      const lvl4p = this.upgrades['node_4p'] || 0;
-      if (lvl4p > 0) {
-        res = res.mul(D(2).pow(lvl4p));
-      }
-
-      if (this.upgrades['node_31']) {
-        res = res.pow(1.05);
-      }
-      this.rates.researchPerSec = res;
+    // 3. Research Points (λ) Rate (Passive Generation via #6p angelic researchers)
+    if (this.upgrades['node_6p'] && this.upgrades['node_8']) {
+      const lvl6p = this.upgrades['node_6p'] || 1;
+      const pendingRes = this.calculatePendingResearch();
+      this.rates.researchPerSec = pendingRes.mul(0.01 * lvl6p);
     } else {
       this.rates.researchPerSec = D(0);
     }
@@ -443,20 +478,38 @@ class GameEngine {
   // -------------------------------------------------------------
   clickSingularity() {
     this.recalculateStatsAndRates();
-    const yieldAmount = this.rates.clickPower;
+
+    // Overload Combo System
+    this.stats.clickCombo = Math.min(30, (this.stats.clickCombo || 0) + 1);
+    this.stats.clickComboTimer = 1.8;
+    this.stats.comboMultiplier = 1.0 + Math.min(2.0, (this.stats.clickCombo / 10) * 0.5);
+
+    // Critical Strike Roll
+    const isCrit = Math.random() < this.stats.critChance;
+    let yieldAmount = this.rates.clickPower.mul(this.stats.comboMultiplier);
+    if (isCrit) {
+      yieldAmount = yieldAmount.mul(this.stats.critMultiplier);
+    }
 
     this.currencies.matter = this.currencies.matter.add(yieldAmount);
     this.currencies.totalMatter = this.currencies.totalMatter.add(yieldAmount);
-    this.stats.totalClicks++;
+    this.stats.totalClicks = (this.stats.totalClicks || 0) + 1;
 
     let xpGain = 1;
     if (this.upgrades['node_22']) {
-      const totalLevels = Object.values(this.upgrades).reduce((a, b) => a + b, 0);
+      const totalLevels = Object.values(this.upgrades).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0);
       xpGain += totalLevels * 2;
     }
+    if (isCrit) xpGain *= 2;
 
     this.addXp(xpGain);
-    return { amount: yieldAmount, isCrit: false, xp: xpGain };
+    return {
+      amount: yieldAmount,
+      isCrit,
+      xp: xpGain,
+      combo: this.stats.clickCombo,
+      comboMult: this.stats.comboMultiplier
+    };
   }
 
   addXp(amount) {
@@ -568,24 +621,39 @@ class GameEngine {
   tick(dt) {
     this.stats.transcensionTime = (this.stats.transcensionTime || 0) + dt;
 
-    // #6p angelic researchers: Generate 1% of λ gain per second passively
-    if (this.upgrades['node_6p'] && this.rates.researchPerSec.gt(0)) {
+    // Smooth Click Combo Decay
+    if (this.stats.clickComboTimer > 0) {
+      this.stats.clickComboTimer -= dt;
+      if (this.stats.clickComboTimer <= 0) {
+        this.stats.clickCombo = Math.max(0, (this.stats.clickCombo || 0) - 1);
+        if (this.stats.clickCombo > 0) {
+          this.stats.clickComboTimer = 0.12;
+        }
+      }
+    }
+    this.stats.comboMultiplier = 1.0 + Math.min(2.0, ((this.stats.clickCombo || 0) / 10) * 0.5);
+
+    // Passive Research Generation:
+    // Prestige Upgrade #6p ("angelic researchers"): Generates 1% of pending λ per second passively
+    if (this.upgrades['node_6p'] && this.upgrades['node_8']) {
       const lvl6p = this.upgrades['node_6p'] || 1;
-      const passiveRes = this.rates.researchPerSec.mul(0.01 * lvl6p).mul(dt);
-      this.currencies.research = this.currencies.research.add(passiveRes);
-      this.currencies.totalResearch = this.currencies.totalResearch.add(passiveRes);
+      const pendingRes = this.calculatePendingResearch();
+      if (pendingRes.gt(0)) {
+        const passiveRes = pendingRes.mul(0.01 * lvl6p).mul(dt);
+        this.currencies.research = this.currencies.research.add(passiveRes);
+        this.currencies.totalResearch = this.currencies.totalResearch.add(passiveRes);
+        this.rates.researchPerSec = pendingRes.mul(0.01 * lvl6p);
+      } else {
+        this.rates.researchPerSec = D(0);
+      }
+    } else {
+      this.rates.researchPerSec = D(0);
     }
 
     if (this.rates.matterPerSec.gt(0)) {
       const dMatter = this.rates.matterPerSec.mul(dt);
       this.currencies.matter = this.currencies.matter.add(dMatter);
       this.currencies.totalMatter = this.currencies.totalMatter.add(dMatter);
-    }
-
-    if (this.rates.researchPerSec.gt(0)) {
-      const dRes = this.rates.researchPerSec.mul(dt);
-      this.currencies.research = this.currencies.research.add(dRes);
-      this.currencies.totalResearch = this.currencies.totalResearch.add(dRes);
     }
 
     if (this.rates.bitsPerSec.gt(0)) {
@@ -629,6 +697,75 @@ class GameEngine {
   // -------------------------------------------------------------
   // PRESTIGE LAYER MECHANICS (Second Major Reset Layer)
   // -------------------------------------------------------------
+  // -------------------------------------------------------------
+  // Research Point Conversion & Research Center Logic (#8)
+  // -------------------------------------------------------------
+  calculatePendingResearch() {
+    if (!this.upgrades['node_8']) return D(0);
+    if (this.currencies.matter.lt(20000)) return D(0);
+
+    // Canon Formula: λ = (₽ / 20,000)^0.75
+    const ratio = this.currencies.matter.div(20000);
+    let base = ratio.pow(0.75).floor();
+    if (base.lt(1)) base = D(1);
+
+    // #19: x3 λ gain
+    if (this.upgrades['node_19']) {
+      base = base.mul(3);
+    }
+
+    // Player leveling perk: researchSpeed (+10% per rank)
+    if (this.player.perks.researchSpeed > 0) {
+      base = base.mul(1 + this.player.perks.researchSpeed * 0.1);
+    }
+
+    // #2p rocket shot: +0.5x λ gain per level
+    const lvl2p = this.upgrades['node_2p'] || 0;
+    if (lvl2p > 0) {
+      base = base.mul(D(1).add(D(lvl2p).mul(0.5)));
+    }
+
+    // #4p duping IQ: x2 compounding λ per level
+    const lvl4p = this.upgrades['node_4p'] || 0;
+    if (lvl4p > 0) {
+      base = base.mul(D(2).pow(lvl4p));
+    }
+
+    // #31 Insignia: ^1.05 λ gain
+    if (this.upgrades['node_31']) {
+      base = base.pow(1.05);
+    }
+
+    return base.floor();
+  }
+
+  canConvertResearch() {
+    return !!(this.upgrades['node_8'] && this.currencies.matter.gte(20000) && this.calculatePendingResearch().gte(1));
+  }
+
+  convertResearch() {
+    if (!this.canConvertResearch()) return null;
+    const gained = this.calculatePendingResearch();
+    if (!gained || gained.lt(1)) return null;
+
+    // Mini-reset: wipes unspent Points in exchange for λ
+    this.currencies.matter = D(0);
+    this.currencies.research = this.currencies.research.add(gained);
+    this.currencies.totalResearch = this.currencies.totalResearch.add(gained);
+    this.stats.researchConversions = (this.stats.researchConversions || 0) + 1;
+    this.badges.research = true;
+
+    this.recalculateStatsAndRates();
+    return { gained, badgeAwarded: true };
+  }
+
+  unlockSecretBeyondAnalysis() {
+    this.upgrades['secret_beyond_analysis'] = 1;
+    this.badges.beyondAnalysis = true;
+    this.recalculateStatsAndRates();
+    return true;
+  }
+
   getPrestigeRequirement() {
     // Minimum 10 Quindecillion Points (10 Qd₽ = 1e49)
     return D(1, 49);
@@ -742,6 +879,7 @@ class GameEngine {
         },
         upgrades: this.upgrades,
         player: this.player,
+        badges: this.badges,
         stats: {
           ...this.stats,
           peakMatter: this.stats.peakMatter ? this.stats.peakMatter.toString() : '0',
@@ -771,6 +909,7 @@ class GameEngine {
       }
       if (p.upgrades) this.upgrades = p.upgrades;
       if (p.player) this.player = { ...this.player, ...p.player };
+      if (p.badges) this.badges = { ...this.badges, ...p.badges };
       if (p.stats) {
         this.stats = { ...this.stats, ...p.stats };
         if (p.stats.peakMatter) this.stats.peakMatter = D(p.stats.peakMatter);

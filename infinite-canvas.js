@@ -290,10 +290,10 @@ class InfiniteCanvas {
     const res = this.engine.clickSingularity();
 
     if (window.soundEngine) {
-      window.soundEngine.playClick();
+      window.soundEngine.playClick(res.comboMult, res.isCrit);
     }
 
-    const txt = `+${res.amount.format(1)} ₽` + (res.xp > 1 ? ` (+${res.xp} XP)` : '');
+    const txt = `+${res.amount.format(1)} ₽` + (res.isCrit ? ' ⚡ CRIT!' : '') + (res.xp > 1 ? ` (+${res.xp} XP)` : '');
     this.spawnFloatingText(txt, sPos.x, sPos.y, res.isCrit);
 
     // Depress node physically
@@ -629,6 +629,7 @@ class InfiniteCanvas {
       // If already purchased / maxed, clicking opens interactive center
       if (maxLvl > 0 && curLvl >= maxLvl) {
         if (nodeId === 'node_0d' && window.openDonationModal) return window.openDonationModal();
+        if (nodeId === 'node_8' && window.openResearchModal) return window.openResearchModal();
         if (nodeId === 'node_9' && window.openBoomboxModal) return window.openBoomboxModal();
         if (nodeId === 'node_16' && window.openLevelingModal) return window.openLevelingModal();
         if (nodeId === 'node_18' && window.openBonusModal) return window.openBonusModal();

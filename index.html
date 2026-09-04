@@ -112,6 +112,9 @@
         <button class="nav-tab-btn" data-tab="leveling" id="tabLeveling" style="display: none;" title="#16 Leveling Center & Perks">
           <span>🎚️</span> Leveling
         </button>
+        <button class="nav-tab-btn" data-tab="research" id="tabResearch" style="display: none;" title="#8 Research Center & Conversion">
+          <span>🔬</span> Research Center
+        </button>
         <button class="nav-tab-btn" data-tab="donation" id="tabDonation" style="display: none;" title="#0d Donation Baseplate">
           <span>🏺</span> Tip Jar
         </button>
@@ -174,6 +177,48 @@
             <button class="mini-bb-btn" id="miniBoomboxPlayBtn" title="Play/Pause Procedural Lo-Fi">▶</button>
             <button class="mini-bb-btn" id="miniBoomboxNextBtn" title="Next Track">⏭</button>
             <button class="mini-bb-btn" id="miniBoomboxExpandBtn" title="Open Boombox Deck">⛶</button>
+          </div>
+
+          <!-- Hyper-Juiced Singularity Core & Clicker Dock -->
+          <div class="singularity-clicker-dock" id="singularityClickerDock">
+            <div class="dock-header">
+              <div class="dock-tag-group">
+                <span class="dock-dot"></span>
+                <span class="dock-tag">QUANTUM TAP ENGINE</span>
+              </div>
+              <button class="dock-minimize-btn" id="minimizeClickerBtn" title="Toggle Clicker Dock">−</button>
+            </div>
+            <div class="dock-body" id="clickerDockBody">
+              <div class="singularity-tap-orb-wrap">
+                <div class="singularity-tap-orb" id="singularityTapOrb" role="button" tabindex="0" title="Tap or Press SPACEBAR to Harvest Points">
+                  <div class="orb-flame-ring" id="orbFlameRing"></div>
+                  <div class="orb-ring ring-outer"></div>
+                  <div class="orb-ring ring-mid"></div>
+                  <div class="orb-core">
+                    <span class="orb-icon">✦</span>
+                    <span class="orb-power-val" id="orbClickPowerVal">+1.0 ₽</span>
+                  </div>
+                  <div class="orb-shockwave" id="orbShockwave"></div>
+                </div>
+              </div>
+
+              <div class="clicker-metrics-bar">
+                <div class="crit-indicator" id="critIndicatorBadge">⚡ CRIT: 10% (×3.0)</div>
+                <div class="frenzy-meter-wrap">
+                  <div class="frenzy-meter-header">
+                    <span class="frenzy-title">COMBO OVERLOAD</span>
+                    <span class="frenzy-multiplier" id="frenzyMultVal">1.0×</span>
+                  </div>
+                  <div class="frenzy-bar-track">
+                    <div class="frenzy-bar-fill" id="frenzyBarFill" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="clicker-hint-bar">
+                <span>💡 Keyboard: <kbd class="key-hint">SPACE</kbd> or <kbd class="key-hint">ENTER</kbd></span>
+              </div>
+            </div>
           </div>
 
           <!-- Bottom Right HUD: Minimap Radar & Controls -->
@@ -351,6 +396,119 @@
         </div>
       </section>
 
+      <!-- 3.5 Research Center Overlay View (#8 New technologies) -->
+      <section class="subsystem-overlay" id="researchOverlay">
+        <div class="overlay-shell" style="max-width: 1040px;">
+          <!-- Hero Header -->
+          <div class="overlay-header">
+            <h2 class="overlay-title">🔬 RESEARCH CENTER (#8 NEW TECHNOLOGIES)</h2>
+            <p class="overlay-desc">A gargantuan particle-synthesis facility. Perform Research Point Conversions (soft resets) to transmute raw Points (₽) into permanent Research Points (λ), and construct internal experimental machinery.</p>
+          </div>
+
+          <!-- Hero Metrics Cards -->
+          <div class="research-hero-banner">
+            <div class="r-hero-stat">
+              <span class="r-hero-label">CURRENT POINTS</span>
+              <span class="r-hero-val" id="rcMatterBalance">0 ₽</span>
+            </div>
+            <div class="r-hero-stat">
+              <span class="r-hero-label">RESEARCH BALANCE (λ)</span>
+              <span class="r-hero-val" id="rcResearchBalance" style="color: var(--cyan-neon);">0 λ</span>
+            </div>
+            <div class="r-hero-stat">
+              <span class="r-hero-label">CONVERSIONS PERFORMED</span>
+              <span class="r-hero-val" id="rcConversionsCount">0</span>
+            </div>
+            <div class="r-hero-stat">
+              <span class="r-hero-label">PASSIVE #6p STATUS</span>
+              <span class="r-hero-val" id="rcPassiveStatus" style="color: var(--amber-glow);">INACTIVE (0%/s)</span>
+            </div>
+          </div>
+
+          <!-- Conversion Reactor Panel (The Core Soft-Reset Station) -->
+          <div class="research-reactor-panel">
+            <div class="reactor-header-row">
+              <div class="reactor-title-group">
+                <span class="reactor-icon">⚛️</span>
+                <div>
+                  <h3 class="reactor-heading">PARTICLE TRANSMUTATION REACTOR</h3>
+                  <p class="reactor-subheading">Soft Reset: Wipes unspent Points (₽) in exchange for Research Points (λ)</p>
+                </div>
+              </div>
+              <div class="reactor-yield-badge">
+                <span class="yield-lbl">PENDING YIELD:</span>
+                <span class="yield-val" id="rcPendingYieldVal">+0 λ</span>
+              </div>
+            </div>
+
+            <!-- Formula & Requirement Info -->
+            <div class="reactor-formula-strip">
+              <div class="formula-box">
+                <span class="formula-label">CANON FORMULA:</span>
+                <code class="formula-code">λ = ⌊(₽ / 20,000)^0.75⌋ × Multipliers</code>
+              </div>
+              <div class="formula-threshold" id="rcThresholdText">
+                Requirement: 20,000 ₽ (Minimum for 1 λ)
+              </div>
+            </div>
+
+            <!-- Multiplier Pills Strip -->
+            <div class="conversion-multipliers-strip">
+              <span class="mult-pill" id="rcMult19">#19: ×3 λ</span>
+              <span class="mult-pill" id="rcMult2p">#2p Rocket: +0.0×</span>
+              <span class="mult-pill" id="rcMult4p">#4p Duping: ×1</span>
+              <span class="mult-pill" id="rcMultPerk">Perk: +0%</span>
+              <span class="mult-pill" id="rcMult31">#31 Insignia: ^1.00</span>
+            </div>
+
+            <!-- Conversion Action Bar -->
+            <div class="reactor-action-row">
+              <div class="reactor-progress-wrap">
+                <div class="reactor-bar-track">
+                  <div class="reactor-bar-fill" id="rcConversionBar" style="width: 0%;"></div>
+                </div>
+                <div class="reactor-progress-labels">
+                  <span id="rcCurrentPointsProgress">0 / 20,000 ₽</span>
+                  <span id="rcCurrentPointsPct">0%</span>
+                </div>
+              </div>
+              <button class="hud-btn reactor-convert-btn" id="initiateConversionBtn" disabled>
+                ⚡ INITIATE RESEARCH CONVERSION
+              </button>
+            </div>
+          </div>
+
+          <!-- Secret Obscurity Radar Box (-550, 3244) -->
+          <div class="rc-secret-radar-box">
+            <div class="radar-top-row">
+              <span class="radar-tag">📡 DEEP CORE SENSOR ARRAY</span>
+              <span class="radar-coords">TARGET COORDINATES: X: -550 | Y: 3244</span>
+            </div>
+            <div class="radar-body">
+              <div class="radar-scan-anim" id="radarScanAnim"></div>
+              <div class="radar-info">
+                <div class="radar-anomaly-title">OBSCURITY ANOMALY DETECTED: "Beyond Analysis"</div>
+                <div class="radar-desc">A hidden Research upgrade nestled in the dark corner of the Research Center (-550, 3244). Requires exploratory probing.</div>
+              </div>
+              <button class="hud-btn radar-probe-btn" id="probeSecretBtn">SCAN & UNLOCK SECRET</button>
+            </div>
+            <div class="radar-status-text" id="radarStatusText">Status: Unscanned</div>
+          </div>
+
+          <!-- Machine Upgrade Tree Section -->
+          <div class="rc-upgrades-section">
+            <div class="rc-section-header">
+              <h3 class="rc-section-title">⚙️ RESEARCH CENTER MACHINERY & EXPERIMENTAL UPGRADES</h3>
+              <span class="rc-section-count" id="rcUpgradesCount">0 / 19 Machines Constructed</span>
+            </div>
+            <div class="rc-cards-grid" id="rcCardsContainer">
+              <!-- Dynamically populated from RESEARCH_CENTER_NODE_IDS -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       <!-- 4. Donation Baseplate Overlay View (#0d Unethical Tipping) -->
       <section class="subsystem-overlay" id="donationOverlay">
         <div class="overlay-shell" style="max-width: 680px;">
@@ -470,6 +628,45 @@
               <div class="record-metric-item">
                 <span class="record-label">Jump Power Levitation</span>
                 <span class="record-val" id="recJump">50</span>
+              </div>
+            </div>
+
+            <!-- Badges & Obscurity Milestones Showcase -->
+            <div class="badges-showcase-section">
+              <h3 class="badges-heading">🏅 COSMIC BADGES & OBSCURITY TROPHIES</h3>
+              <div class="badges-grid">
+                <div class="badge-card" id="badgeResearchCard">
+                  <div class="badge-icon-box">🎖️</div>
+                  <div class="badge-info">
+                    <div class="badge-name">Research</div>
+                    <div class="badge-status-pill locked" id="badgeResearchStatus">LOCKED</div>
+                    <div class="badge-lore">Perform your first Research Point Conversion in the Research Center.</div>
+                  </div>
+                </div>
+                <div class="badge-card" id="badgeBeyondCard">
+                  <div class="badge-icon-box">🔮</div>
+                  <div class="badge-info">
+                    <div class="badge-name">Beyond Analysis</div>
+                    <div class="badge-status-pill locked" id="badgeBeyondStatus">LOCKED</div>
+                    <div class="badge-lore">Discover the hidden Research upgrade at (-550, 3244). Obscurity achievement.</div>
+                  </div>
+                </div>
+                <div class="badge-card" id="badgePrestigeCard">
+                  <div class="badge-icon-box">✨</div>
+                  <div class="badge-info">
+                    <div class="badge-name">Dimensional Fracture</div>
+                    <div class="badge-status-pill locked" id="badgePrestigeStatus">LOCKED</div>
+                    <div class="badge-lore">Trigger your first reality collapse at 10 Quindecillion Points (10 Qd₽).</div>
+                  </div>
+                </div>
+                <div class="badge-card" id="badgeLofiCard">
+                  <div class="badge-icon-box">📻</div>
+                  <div class="badge-info">
+                    <div class="badge-name">Lo-Fi Audiophile</div>
+                    <div class="badge-status-pill locked" id="badgeLofiStatus">LOCKED</div>
+                    <div class="badge-lore">Listen to the procedural synthesizer across all 4 cosmic tracks.</div>
+                  </div>
+                </div>
               </div>
             </div>
 

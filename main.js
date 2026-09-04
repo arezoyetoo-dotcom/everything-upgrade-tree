@@ -54,6 +54,7 @@ function startApp() {
     prestige: document.getElementById('prestigeOverlay'),
     boombox: document.getElementById('boomboxOverlay'),
     leveling: document.getElementById('levelingOverlay'),
+    research: document.getElementById('researchOverlay'),
     donation: document.getElementById('donationOverlay'),
     bonus: document.getElementById('bonusOverlay'),
     records: document.getElementById('recordsOverlay'),
@@ -86,6 +87,8 @@ function startApp() {
       renderPrestigeView();
     } else if (tabKey === 'boombox') {
       renderBoomboxView();
+    } else if (tabKey === 'research') {
+      renderResearchView();
     } else if (tabKey === 'leveling') {
       renderLevelingView();
     } else if (tabKey === 'donation') {
@@ -117,6 +120,7 @@ function startApp() {
   // Global Baseplate Opening Handlers for Tree Clicks
   window.openBoomboxModal = () => switchTab('boombox');
   window.openLevelingModal = () => switchTab('leveling');
+  window.openResearchModal = () => switchTab('research');
   window.openDonationModal = () => switchTab('donation');
   window.openBonusModal = () => switchTab('bonus');
   window.openLeaderboardModal = () => switchTab('records');
@@ -140,6 +144,9 @@ function startApp() {
 
     const tabLeveling = document.getElementById('tabLeveling');
     if (tabLeveling) tabLeveling.style.display = engine.upgrades['node_16'] ? 'inline-flex' : 'none';
+
+    const tabResearch = document.getElementById('tabResearch');
+    if (tabResearch) tabResearch.style.display = engine.upgrades['node_8'] ? 'inline-flex' : 'none';
 
     const tabDonation = document.getElementById('tabDonation');
     if (tabDonation) tabDonation.style.display = engine.upgrades['node_0d'] ? 'inline-flex' : 'none';
@@ -577,7 +584,45 @@ ${drop.res.gt(0) ? '+' + drop.res.format(1) + ' Research (λ)' : ''}`);
         toggleHardcoreBtn.style.background = engine.stats.hardcoreMode ? '#ef4444' : 'rgba(255,255,255,0.08)';
       }
     }
+
+    // Badges Showcase Update
+    const bResearchCard = document.getElementById('badgeResearchCard');
+    const bResearchStatus = document.getElementById('badgeResearchStatus');
+    const isResearchUnlocked = !!(engine.badges && engine.badges.research) || ((engine.stats.researchConversions || 0) > 0);
+    if (bResearchCard) bResearchCard.classList.toggle('unlocked', isResearchUnlocked);
+    if (bResearchStatus) {
+      bResearchStatus.textContent = isResearchUnlocked ? 'UNLOCKED' : 'LOCKED';
+      bResearchStatus.className = 'badge-status-pill ' + (isResearchUnlocked ? 'unlocked' : 'locked');
+    }
+
+    const bBeyondCard = document.getElementById('badgeBeyondCard');
+    const bBeyondStatus = document.getElementById('badgeBeyondStatus');
+    const isBeyondUnlocked = !!(engine.badges && engine.badges.beyondAnalysis) || !!engine.upgrades['secret_beyond_analysis'];
+    if (bBeyondCard) bBeyondCard.classList.toggle('unlocked', isBeyondUnlocked);
+    if (bBeyondStatus) {
+      bBeyondStatus.textContent = isBeyondUnlocked ? 'UNLOCKED' : 'LOCKED';
+      bBeyondStatus.className = 'badge-status-pill ' + (isBeyondUnlocked ? 'unlocked' : 'locked');
+    }
+
+    const bPrestigeCard = document.getElementById('badgePrestigeCard');
+    const bPrestigeStatus = document.getElementById('badgePrestigeStatus');
+    const isPrestigeUnlocked = (engine.stats.prestiges > 0) || (engine.stats.totalPrestiges > 0);
+    if (bPrestigeCard) bPrestigeCard.classList.toggle('unlocked', isPrestigeUnlocked);
+    if (bPrestigeStatus) {
+      bPrestigeStatus.textContent = isPrestigeUnlocked ? 'UNLOCKED' : 'LOCKED';
+      bPrestigeStatus.className = 'badge-status-pill ' + (isPrestigeUnlocked ? 'unlocked' : 'locked');
+    }
+
+    const bLofiCard = document.getElementById('badgeLofiCard');
+    const bLofiStatus = document.getElementById('badgeLofiStatus');
+    const isLofiUnlocked = !!engine.upgrades['node_9'];
+    if (bLofiCard) bLofiCard.classList.toggle('unlocked', isLofiUnlocked);
+    if (bLofiStatus) {
+      bLofiStatus.textContent = isLofiUnlocked ? 'UNLOCKED' : 'LOCKED';
+      bLofiStatus.className = 'badge-status-pill ' + (isLofiUnlocked ? 'unlocked' : 'locked');
+    }
   }
+
 
   if (saveCallsignBtn && callsignInput) {
     saveCallsignBtn.addEventListener('click', () => {
@@ -1310,6 +1355,303 @@ ${pulled.desc}`);
   }
   window.renderPrestigeView = renderPrestigeView;
 
+
+  // -------------------------------------------------------------
+  // Singularity Tap Engine & Clicker Dock Controller
+  // -------------------------------------------------------------
+  const singularityClickerDock = document.getElementById('singularityClickerDock');
+  const minimizeClickerBtn = document.getElementById('minimizeClickerBtn');
+  const singularityTapOrb = document.getElementById('singularityTapOrb');
+  const orbClickPowerVal = document.getElementById('orbClickPowerVal');
+  const frenzyMultVal = document.getElementById('frenzyMultVal');
+  const frenzyBarFill = document.getElementById('frenzyBarFill');
+  const critIndicatorBadge = document.getElementById('critIndicatorBadge');
+
+  if (minimizeClickerBtn && singularityClickerDock) {
+    minimizeClickerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      singularityClickerDock.classList.toggle('minimized');
+      minimizeClickerBtn.textContent = singularityClickerDock.classList.contains('minimized') ? '+' : '−';
+    });
+  }
+
+  function handleManualTap(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+
+    // Auto-unlock #1 Generic beginning if not owned
+    if (!engine.upgrades['node_1'] && engine.canAffordNode('node_1')) {
+      engine.buyNode('node_1');
+    }
+
+    if (singularityTapOrb) {
+      singularityTapOrb.classList.add('tap-active', 'shocking');
+      setTimeout(() => singularityTapOrb.classList.remove('tap-active', 'shocking'), 100);
+    }
+
+    const res = engine.clickSingularity();
+    sound.playClick(res.comboMult, res.isCrit);
+
+    let x = window.innerWidth / 2;
+    let y = window.innerHeight - 180;
+    if (e && e.clientX) {
+      x = e.clientX;
+      y = e.clientY - 20;
+    } else if (singularityTapOrb) {
+      const rect = singularityTapOrb.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top - 15;
+    }
+
+    const text = `+${res.amount.format(1)} ₽` + (res.isCrit ? ' ⚡ CRIT!' : '') + (res.xp > 1 ? ` (+${res.xp} XP)` : '');
+    canvasRenderer.spawnFloatingText(text, x, y, res.isCrit);
+
+    updateClickerUI();
+    updateHeaderTickers();
+  }
+
+  if (singularityTapOrb) {
+    singularityTapOrb.addEventListener('click', handleManualTap);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (activeTab === 'tree') {
+        e.preventDefault();
+        handleManualTap();
+      }
+    }
+  });
+
+  function updateClickerUI() {
+    if (orbClickPowerVal) orbClickPowerVal.textContent = `+${engine.rates.clickPower.format(1)} ₽`;
+    const combo = engine.stats.clickCombo || 0;
+    const mult = engine.stats.comboMultiplier || 1.0;
+    if (frenzyMultVal) frenzyMultVal.textContent = `${mult.toFixed(1)}×`;
+    if (frenzyBarFill) frenzyBarFill.style.width = `${Math.min(100, (combo / 30) * 100)}%`;
+    if (singularityTapOrb) {
+      singularityTapOrb.classList.toggle('high-combo', combo >= 10);
+    }
+    if (critIndicatorBadge) {
+      critIndicatorBadge.style.boxShadow = combo >= 15 ? '0 0 12px #fbbf24' : 'none';
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Research Center (#8) View Controller & Conversion
+  // -------------------------------------------------------------
+  const rcMatterBalance = document.getElementById('rcMatterBalance');
+  const rcResearchBalance = document.getElementById('rcResearchBalance');
+  const rcConversionsCount = document.getElementById('rcConversionsCount');
+  const rcPassiveStatus = document.getElementById('rcPassiveStatus');
+  const rcPendingYieldVal = document.getElementById('rcPendingYieldVal');
+  const rcConversionBar = document.getElementById('rcConversionBar');
+  const rcCurrentPointsProgress = document.getElementById('rcCurrentPointsProgress');
+  const rcCurrentPointsPct = document.getElementById('rcCurrentPointsPct');
+  const initiateConversionBtn = document.getElementById('initiateConversionBtn');
+  const rcCardsContainer = document.getElementById('rcCardsContainer');
+  const rcUpgradesCount = document.getElementById('rcUpgradesCount');
+  const probeSecretBtn = document.getElementById('probeSecretBtn');
+  const radarStatusText = document.getElementById('radarStatusText');
+
+  const rcMult19 = document.getElementById('rcMult19');
+  const rcMult2p = document.getElementById('rcMult2p');
+  const rcMult4p = document.getElementById('rcMult4p');
+  const rcMultPerk = document.getElementById('rcMultPerk');
+  const rcMult31 = document.getElementById('rcMult31');
+
+  const rcCardElements = new Map();
+
+  function renderResearchView() {
+    if (rcMatterBalance) rcMatterBalance.textContent = `${engine.currencies.matter.format(2)} ₽`;
+    if (rcResearchBalance) rcResearchBalance.textContent = `${engine.currencies.research.format(1)} λ`;
+    if (rcConversionsCount) rcConversionsCount.textContent = (engine.stats.researchConversions || 0);
+
+    // Passive Status (#6p)
+    if (rcPassiveStatus) {
+      const has6p = (engine.upgrades['node_6p'] || 0) > 0;
+      if (has6p) {
+        rcPassiveStatus.textContent = `ACTIVE (+${engine.rates.researchPerSec.format(1)} λ/s)`;
+        rcPassiveStatus.style.color = '#34d399';
+      } else {
+        rcPassiveStatus.textContent = 'INACTIVE (0%/s) — Manual Conversion Only';
+        rcPassiveStatus.style.color = '#fbbf24';
+      }
+    }
+
+    // Conversion Reactor
+    const canConvert = engine.canConvertResearch ? engine.canConvertResearch() : false;
+    const pendingLambda = engine.calculatePendingResearch ? engine.calculatePendingResearch() : D(0);
+    if (rcPendingYieldVal) rcPendingYieldVal.textContent = `+${pendingLambda.format(0)} λ`;
+
+    if (initiateConversionBtn) {
+      initiateConversionBtn.disabled = !canConvert;
+      initiateConversionBtn.textContent = canConvert ? `⚡ INITIATE CONVERSION (+${pendingLambda.format(0)} λ)` : 'Need 20,000 ₽ to Convert';
+    }
+
+    const matterNum = engine.currencies.matter.toNumber();
+    const progressPct = Math.min(100, Math.max(0, (matterNum / 20000) * 100));
+    if (rcConversionBar) rcConversionBar.style.width = `${progressPct.toFixed(1)}%`;
+    if (rcCurrentPointsProgress) rcCurrentPointsProgress.textContent = `${engine.currencies.matter.format(1)} / 20,000 ₽`;
+    if (rcCurrentPointsPct) rcCurrentPointsPct.textContent = `${progressPct.toFixed(1)}%`;
+
+    // Multiplier Pills
+    if (rcMult19) rcMult19.classList.toggle('active', !!engine.upgrades['node_19']);
+    if (rcMult2p) {
+      const lvl = engine.upgrades['node_2p'] || 0;
+      rcMult2p.textContent = `#2p Rocket: +${(lvl * 0.5).toFixed(1)}×`;
+      rcMult2p.classList.toggle('active', lvl > 0);
+    }
+    if (rcMult4p) {
+      const lvl = engine.upgrades['node_4p'] || 0;
+      rcMult4p.textContent = `#4p Duping: ×${Math.pow(2, lvl)}`;
+      rcMult4p.classList.toggle('active', lvl > 0);
+    }
+    if (rcMultPerk) {
+      const rank = engine.player.perks.researchSpeed || 0;
+      rcMultPerk.textContent = `Perk: +${rank * 10}%`;
+      rcMultPerk.classList.toggle('active', rank > 0);
+    }
+    if (rcMult31) rcMult31.classList.toggle('active', !!engine.upgrades['node_31']);
+
+    // Secret Anomaly
+    const isSecretUnlocked = !!(engine.badges && engine.badges.beyondAnalysis) || !!engine.upgrades['secret_beyond_analysis'];
+    if (probeSecretBtn) {
+      probeSecretBtn.disabled = isSecretUnlocked;
+      probeSecretBtn.textContent = isSecretUnlocked ? 'RELIC DISCOVERED (CLAIMED)' : 'SCAN & UNLOCK SECRET';
+    }
+    if (radarStatusText) {
+      radarStatusText.textContent = isSecretUnlocked ? 'Status: Relic Synchronized [Beyond Analysis Badge Acquired]' : 'Status: Anomaly Signature Detected at (-550, 3244)';
+      radarStatusText.style.color = isSecretUnlocked ? '#34d399' : '#c084fc';
+    }
+
+    // Machine Upgrade Cards Grid
+    const defs = getNodeDefs();
+    const rcIds = (typeof RESEARCH_CENTER_NODE_IDS !== 'undefined') ? RESEARCH_CENTER_NODE_IDS.filter(id => id !== 'secret_beyond_analysis') : [];
+
+    let constructedCount = 0;
+    rcIds.forEach(id => {
+      if ((engine.upgrades[id] || 0) > 0) constructedCount++;
+    });
+    if (rcUpgradesCount) rcUpgradesCount.textContent = `${constructedCount} / ${rcIds.length} Machines Constructed`;
+
+    if (!rcCardsContainer) return;
+
+    rcIds.forEach(id => {
+      const def = defs[id];
+      if (!def) return;
+
+      let card = rcCardElements.get(id);
+      if (!card) {
+        card = document.createElement('div');
+        card.className = 'rc-card';
+        card.dataset.node = id;
+
+        card.innerHTML = `
+          <div class="rc-card-top">
+            <div class="rc-icon-box">${def.icon || '⚙️'}</div>
+            <div class="rc-info">
+              <div class="rc-title-row">
+                <span class="rc-title">${def.name}</span>
+                <span class="rc-lvl-pill" id="rclvl-${id}">LVL 0</span>
+              </div>
+            </div>
+          </div>
+          <div class="rc-desc-box">
+            <div id="rceffect-${id}">${typeof def.effectDescription === 'function' ? def.effectDescription(0, engine) : def.effectDescription}</div>
+          </div>
+          <div class="rc-card-bottom">
+            <span class="rc-cost-pill" id="rccost-${id}">0 λ</span>
+            <button class="rc-buy-btn" id="rcbtn-${id}">BUY</button>
+          </div>
+        `;
+
+        const buyBtn = card.querySelector(`#rcbtn-${id}`);
+        if (buyBtn) {
+          buyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (engine.buyNode(id)) {
+              sound.playBuy();
+              renderResearchView();
+              updateHeaderTickers();
+            }
+          });
+        }
+
+        rcCardElements.set(id, card);
+        rcCardsContainer.appendChild(card);
+      }
+
+      // Update Card State
+      const lvl = engine.upgrades[id] || 0;
+      const maxLvl = engine.getNodeMaxLevel(id);
+      const isMaxed = maxLvl > 0 && lvl >= maxLvl;
+      const canAfford = engine.canAffordNode(id);
+      const cost = engine.getNodeCost(id);
+
+      card.classList.toggle('affordable', canAfford && !isMaxed);
+      card.classList.toggle('maxed', isMaxed);
+
+      const lvlPill = card.querySelector(`#rclvl-${id}`);
+      if (lvlPill) {
+        if (def.isPermanent) {
+          lvlPill.textContent = lvl > 0 ? 'CONSTRUCTED' : 'UNOWNED';
+          lvlPill.className = 'rc-lvl-pill ' + (lvl > 0 ? 'maxed' : '');
+        } else if (isMaxed) {
+          lvlPill.textContent = 'MAXED';
+          lvlPill.className = 'rc-lvl-pill maxed';
+        } else {
+          lvlPill.textContent = `${lvl}/${maxLvl}`;
+          lvlPill.className = 'rc-lvl-pill';
+        }
+      }
+
+      const effectEl = card.querySelector(`#rceffect-${id}`);
+      if (effectEl) {
+        effectEl.textContent = typeof def.effectDescription === 'function' ? def.effectDescription(lvl, engine) : def.effectDescription;
+      }
+
+      const costEl = card.querySelector(`#rccost-${id}`);
+      if (costEl) {
+        costEl.textContent = isMaxed ? 'OWNED' : `${cost.format(0)} λ`;
+      }
+
+      const buyBtn = card.querySelector(`#rcbtn-${id}`);
+      if (buyBtn) {
+        buyBtn.disabled = isMaxed || !canAfford;
+        buyBtn.textContent = isMaxed ? 'OWNED' : 'BUY';
+      }
+    });
+  }
+
+  // Conversion Button Listener
+  if (initiateConversionBtn) {
+    initiateConversionBtn.addEventListener('click', () => {
+      if (!engine.canConvertResearch()) return;
+      const res = engine.convertResearch();
+      if (res && res.gained && res.gained.gt(0)) {
+        sound.playConvert();
+        renderResearchView();
+        updateHeaderTickers();
+        canvasRenderer.spawnFloatingText(`✦ RESEARCH CONVERTED! +${res.gained.format(0)} λ ✦`, window.innerWidth / 2, window.innerHeight / 2, true);
+      }
+    });
+  }
+
+  // Probe Secret Listener
+  if (probeSecretBtn) {
+    probeSecretBtn.addEventListener('click', () => {
+      if (engine.unlockSecretBeyondAnalysis()) {
+        sound.playSecretUnlock();
+        renderResearchView();
+        renderRecordsView();
+        canvasRenderer.spawnFloatingText('🔮 OBSCURITY BADGE: BEYOND ANALYSIS UNLOCKED! 🔮', window.innerWidth / 2, window.innerHeight / 2, true);
+      }
+    });
+  }
+
+  window.renderResearchView = renderResearchView;
+
   // -------------------------------------------------------------
   // 14. Sound FX, Drone & Camera Controls
   // -------------------------------------------------------------
@@ -1361,6 +1703,9 @@ ${pulled.desc}`);
     canvasRenderer.update(dt);
     if (activeTab === 'tree') {
       canvasRenderer.render();
+      updateClickerUI();
+    } else if (activeTab === 'research') {
+      renderResearchView();
     } else if (activeTab === 'prestige') {
       renderPrestigeView();
     } else if (activeTab === 'bonus') {

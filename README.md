@@ -106,6 +106,66 @@ Once architects accumulate at least **10 Quindecillion Points (10 Qd₽ = $10^{4
 
 ---
 
+## 🔬 Research Center (#8) & Research Points (λ)
+
+Unlocked by purchasing **Upgrade #8 ("New technologies")** for **10,000 ₽**, the **Research Center** is a colossal particle transmutation facility equipped with its own dedicated upgrade matrix, conversion reactor, and anomaly scanner.
+
+### ⚛️ Research Point Conversion (Mini-Reset)
+- **Mechanic:** Transmutes current unspent Points (₽) into Research Points ($\lambda$) via quantum particle conversion.
+- **Conversion Scope:** Soft reset — wipes current unspent Points (₽) while strictly preserving all unlocked nodes, baseplates, architect levels, perks, and research upgrades.
+- **Threshold:** Requires a minimum of **20,000 ₽**.
+- **Conversion Formula:**
+  $$\lambda = \left\lfloor \left( \frac{\text{Points}}{20,000} \right)^{0.75} \right\rfloor \times \text{Multipliers}$$
+- **Multipliers Stack:**
+  - `#19 A step further`: $\times 3$ $\lambda$ gain
+  - `#2p rocket shot`: $+0.5\times$ $\lambda$ gain per level
+  - `#4p duping IQ`: $\times 2$ compounding per level
+  - `#31 Insignia`: $^{1.05}$ $\lambda$ exponential boost
+  - Leveling Perk *Research Accelerator*: $+10\%$ per rank
+- **Passive Research Generation:**
+  - With **Prestige Upgrade #6p ("angelic researchers")**, generate **1% of pending $\lambda$ per second** continuously without manual conversion. Without #6p, passive rate is strictly zero.
+
+### ⚙️ 20 Research Center Machine Upgrades
+
+| Machine Node | Name | Base Cost | Effect |
+|---|---|---|---|
+| **#1b** | Particle Accelerator | 100 λ | ×1.5 Points (₽) gain |
+| **#2b** | Subatomic Splitter | 350 λ | ×1.8 Points (₽) gain |
+| **#3b** | Tachyon Condenser | 1,000 λ | ×2.0 Points (₽) gain |
+| **#4b** | Quantum Entangler | 5,000 λ | ×2.5 Points (₽) gain |
+| **#5b** | Hadron Synchrotron | 25,000 λ | ×3.0 Points (₽) gain |
+| **#6b** | Antimatter Chamber | 100,000 λ | ×5.0 Points (₽) gain |
+| **#1c** | Left Particle Wing | 500 λ | Expands left reactor banks |
+| **#2c** | Right Particle Wing | 500 λ | Expands right reactor banks |
+| **#1b-X** | Singularity Core Alpha | 250,000 λ | ×10 Points (₽) gain |
+| **#X-Core** | Dark Energy Dynamo | 1,000,000 λ | ^1.08 Points (₽) gain |
+| **#mat-1** | Matter Synthesizer I | 250 λ | +5 level cap to #4 |
+| **#mat-2** | Matter Synthesizer II | 1,200 λ | +10 level cap to #4 |
+| **#mat-3** | Matter Synthesizer III | 6,000 λ | +15 level cap to #4 |
+| **#mat-4** | Matter Synthesizer IV | 30,000 λ | +25 level cap to #4 |
+| **#mat-5** | Matter Synthesizer V | 150,000 λ | +50 level cap to #4 |
+| **#mat-ext** | Cap Overdrive Array | 2,500,000 λ | +100 level cap to #4 |
+| **#mat-1b** | Exotic Matter Lattice | 50,000 λ | Multiplies matter crystallization |
+| **#dark-1** | Void Catalyst | 5,000,000 λ | Unlocks dark matter sub-reactions |
+| **#chat-1** | Quantum Sub-Relay | 10,000,000 λ | Synchronizes inter-dimensional signals |
+| **#sec-ba** | Beyond Analysis | Free | Unlocked at `(-550, 3244)`: ×1.5 Points & Obscurity Badge |
+
+### 🧭 Secret Relic: Beyond Analysis
+Hidden deep in the bottom-left quadrant of the Research Center at canvas coordinates **`(-550, 3244)`**, architects who explore the machine periphery can detect an anomalous quantum relic. Scanning and stabilizing this relic permanently bestows a **×1.5 Points multiplier** and awards the rare **Beyond Analysis Obscurity Badge**.
+
+---
+
+## ⚡ Quantum Singularity Tap Engine (Overhauled Clicker UI)
+
+The manual clicking mechanic has been elevated into a hyper-responsive, multi-sensory **Quantum Tap Core**:
+- **Dynamic Combo Overload:** Continuous clicking builds a combo meter (up to 30 clicks) granting an active frenzy multiplier from **1.0× up to 3.0×**.
+- **Critical Strike Matrix:** Every tap has an inherent **10% chance** to land a devastating **3.0× Critical Strike**, triggering dual-layer sub-bass audio and explosive shockwave ripples.
+- **Pitch-Scaling Audio Synthesis:** Procedural Web Audio oscillator increases in frequency from 460 Hz up to 1100 Hz as the combo builds, creating visceral auditory momentum.
+- **Floating Tactical HUD:** Displays real-time tap potency, active combo status, critical hit notifications, and animated floating yield indicators.
+- **Dual-Input Mechanics:** Fully playable via mouse clicks on the canvas / dock, or rapid tap via `Space` and `Enter` keys.
+
+---
+
 ## 🎛️ Interactive Centers & Baseplates
 
 1. **📻 Boombox Audio Deck (#9):**
@@ -115,7 +175,7 @@ Once architects accumulate at least **10 Quindecillion Points (10 Qd₽ = $10^{4
 
 2. **🎚️ Leveling Center (#16):**
    - Architectural leveling system gaining XP from clicks, upgrade purchases, and void donations.
-   - XP requirement formula scaling: $100 	imes 	ext{Level}^{1.4}$, discounted by ÷1.5 from #23 and ×0.7 from #32.
+   - XP requirement formula scaling: $100 \times \text{Level}^{1.4}$, discounted by ÷1.5 from #23 and ×0.7 from #32.
    - 4 upgradable perks: **Point Magnet** (+10% ₽/rank), **Research Accelerator** (+10% λ/rank), **Speed Demon** (+2 Walkspeed/rank), and **Kinetic Leap** (+5 Jump Power/rank).
 
 3. **🏺 Unethical Donation Baseplate (#0d):**
@@ -125,8 +185,9 @@ Once architects accumulate at least **10 Quindecillion Points (10 Qd₽ = $10^{4
 4. **🎁 Cosmic Supply Drop Baseplate (#18):**
    - 60-second rechargeable orbital supply capsule granting instant 30-second Points surges and 20-second Research bursts.
 
-5. **🏆 Hall of Records & Leaderboard (#20):**
+5. **🏆 Hall of Records & Badges Showcase (#20):**
    - Custom Architect callsign editor, all-time peak points reached, tree unlock completion ratio, clicks, prestiges, and mobility metrics.
+   - Real-time achievement badge showcase with rarity classifications (*Obscurity*, *Quantum*, *Ascension*).
 
 6. **👑 Hardcore Matrix Mode (#40):**
    - Endgame prestige tier multiplying all upgrade costs by ×5 for master architects seeking extreme challenge.
@@ -138,4 +199,4 @@ Once architects accumulate at least **10 Quindecillion Points (10 Qd₽ = $10^{4
 - **GitHub Pages:** [https://arezoyetoo-dotcom.github.io/everything-upgrade-tree/](https://arezoyetoo-dotcom.github.io/everything-upgrade-tree/)
 - **Cloudflare Tunnel:** [https://photograph-touched-logos-talent.trycloudflare.com](https://photograph-touched-logos-talent.trycloudflare.com)
 - **Local Server:** `http://localhost:5407`
-- **Standalone Windows Offline Launcher:** `launchers/games/everything-upgrade-tree.html` (200 KB zero-dependency standalone HTML)
+- **Standalone Offline Launcher:** `launchers/games/everything-upgrade-tree.html` (312 KB zero-dependency standalone HTML)
