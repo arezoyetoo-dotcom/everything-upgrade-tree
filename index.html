@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Everything Upgrade Tree — Astral Singularity Idle Universe</title>
+  <meta name="description" content="A sprawling, infinite-canvas idle upgrade tree with cascading prestige layers, cards, mining, and astronomy.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Top HUD & Navigation Bar -->
+    <header class="top-hud-bar">
+      <!-- Left: Logo & Subtitle -->
+      <div class="brand-section">
+        <span class="brand-icon">✦</span>
+        <div>
+          <h1 class="brand-title">EVERYTHING UPGRADE TREE</h1>
+          <p class="brand-subtitle">ASTRAL SINGULARITY • INFINITE MATRIX</p>
+        </div>
+      </div>
+
+      <!-- Center: Currency Tickers -->
+      <div class="currency-tickers-group">
+        <!-- Matter / Points -->
+        <div class="currency-pill matter-pill" title="Raw Matter (Base Currency)">
+          <span class="curr-symbol">₽</span>
+          <div class="curr-data">
+            <span class="curr-val" id="matterVal">0</span>
+            <span class="curr-rate" id="matterRate">+0/s</span>
+          </div>
+        </div>
+
+        <!-- Research Points -->
+        <div class="currency-pill research-pill" id="researchPill" style="display: none;" title="Research Points (λ)">
+          <span class="curr-symbol">λ</span>
+          <div class="curr-data">
+            <span class="curr-val" id="researchVal">0</span>
+            <span class="curr-rate" id="researchRate">+0/s</span>
+          </div>
+        </div>
+
+        <!-- Prestige Points -->
+        <div class="currency-pill prestige-pill" id="prestigePill" style="display: none;" title="Prestige Points (₹)">
+          <span class="curr-symbol">₹</span>
+          <div class="curr-data">
+            <span class="curr-val" id="prestigeVal">0</span>
+            <span class="curr-rate">PRESTIGE</span>
+          </div>
+        </div>
+
+        <!-- Transcend Points -->
+        <div class="currency-pill transcend-pill" id="transcendPill" style="display: none;" title="Transcendence Points (τ)">
+          <span class="curr-symbol">τ</span>
+          <div class="curr-data">
+            <span class="curr-val" id="transcendVal">0</span>
+            <span class="curr-rate">COSMIC</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Navigation Tabs & Audio Controls -->
+      <div class="nav-tabs-group">
+        <button class="nav-tab-btn active" data-tab="tree">
+          <span>🌌</span> Tree Map
+        </button>
+        <button class="nav-tab-btn" data-tab="mining" style="display: none;">
+          <span>⛏️</span> Mining
+        </button>
+        <button class="nav-tab-btn" data-tab="cards" style="display: none;">
+          <span>🃏</span> Cards
+        </button>
+        <button class="nav-tab-btn" data-tab="astronomy" style="display: none;">
+          <span>🔭</span> Astronomy
+        </button>
+        <button class="nav-tab-btn" data-tab="puzzle" style="display: none;">
+          <span>🧩</span> Logic
+        </button>
+        <button class="nav-tab-btn" data-tab="challenges" style="display: none;">
+          <span>⚔️</span> Trials
+        </button>
+        <button class="nav-tab-btn" data-tab="settings">
+          <span>⚙️</span> System
+        </button>
+      </div>
+
+      <!-- Quick SFX & Drone Controls -->
+      <div class="quick-tools-group">
+        <button class="tool-toggle-btn active" id="soundToggleBtn">SFX: ON</button>
+        <button class="tool-toggle-btn" id="droneToggleBtn">Drone: OFF</button>
+      </div>
+    </header>
+
+    <!-- Master Workspace Views -->
+    <main class="workspace-views-container">
+      <!-- 1. Infinite Canvas Tree View -->
+      <section class="tree-view-wrapper active-view" id="treeView">
+        <div id="canvasContainer">
+          <canvas id="bgCanvas"></canvas>
+          <canvas id="wireCanvas"></canvas>
+          <div id="nodeLayer"></div>
+          <div id="floatingLayer"></div>
+
+          <!-- Bottom Right HUD: Minimap Radar & Controls -->
+          <div class="canvas-hud-overlay">
+            <div class="canvas-controls-strip">
+              <button class="hud-btn" id="centerCamBtn" title="Center View (C)">[C] Center</button>
+              <button class="hud-btn" id="prestigeQuickBtn" onclick="openPrestigeModal()" title="Prestige Menu">[₹] Prestige</button>
+            </div>
+            <div class="minimap-wrapper" title="Constellation Radar (Click to Pan)">
+              <canvas id="minimapCanvas" width="140" height="140"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Mining Quarry Overlay View -->
+      <section class="subsystem-overlay" id="miningOverlay">
+        <div class="overlay-shell">
+          <div class="overlay-header">
+            <h2 class="overlay-title">⛏️ SUBTERRANEAN EXTRACTION QUARRY</h2>
+            <p class="overlay-desc">Click bedrock blocks to extract high-density minerals. Upgrade pickaxes and forge permanent alloys to empower the main tree.</p>
+          </div>
+
+          <div class="mining-dashboard">
+            <div class="mining-grid-container" id="miningGrid">
+              <!-- 36 Blocks rendered via JS -->
+            </div>
+
+            <div class="mining-sidebar">
+              <!-- Pickaxe Info Card -->
+              <div class="sidebar-card">
+                <h3 class="card-title">PICKAXE MASTERY</h3>
+                <div style="margin-bottom: 8px;">
+                  <strong id="pickaxeTitle" style="color: #fff; font-size: 14px;">Crude Stone Pick</strong>
+                  <div id="pickaxePower" style="font-family: var(--font-mono); font-size: 11px; color: var(--cyan-core);">Power: 1</div>
+                </div>
+                <button class="hud-btn" id="upgradePickaxeBtn" style="width: 100%;">Upgrade Pickaxe</button>
+              </div>
+
+              <!-- Ore Storage Card -->
+              <div class="sidebar-card">
+                <h3 class="card-title">ORE VAULT</h3>
+                <div class="ore-inventory-list">
+                  <div class="ore-item"><span>Stone:</span> <span id="oreStone">0</span></div>
+                  <div class="ore-item" style="color: #fb923c;"><span>Copper:</span> <span id="oreCopper">0</span></div>
+                  <div class="ore-item" style="color: #38bdf8;"><span>Iron:</span> <span id="oreIron">0</span></div>
+                  <div class="ore-item" style="color: #f43f5e;"><span>Ruby:</span> <span id="oreRuby">0</span></div>
+                  <div class="ore-item" style="color: #c084fc;"><span>Celestial:</span> <span id="oreCelestial">0</span></div>
+                </div>
+              </div>
+
+              <!-- Alloy Forge Card -->
+              <div class="sidebar-card">
+                <h3 class="card-title">ALLOY FORGE</h3>
+                <div id="alloysContainer">
+                  <!-- Alloys rendered via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Cards & Deck Builder Overlay View -->
+      <section class="subsystem-overlay" id="cardsOverlay">
+        <div class="overlay-shell">
+          <div class="overlay-header">
+            <h2 class="overlay-title">🃏 ARCANE DECK ARCHIVE</h2>
+            <p class="overlay-desc">Acquire randomized card packs with varying rarities. Equip up to 3 cards into your active deck to unlock massive active multipliers.</p>
+          </div>
+
+          <div class="cards-deck-section">
+            <h3 class="card-title">ACTIVE DECK SLOTS (3 SLOTS)</h3>
+            <div class="deck-slots-grid">
+              <div class="deck-slot-card slot-empty" id="deckSlot1"></div>
+              <div class="deck-slot-card slot-empty" id="deckSlot2"></div>
+              <div class="deck-slot-card slot-empty" id="deckSlot3"></div>
+            </div>
+
+            <h3 class="card-title" style="margin-top: 10px;">CARD PACK STORE</h3>
+            <div class="card-packs-row">
+              <div class="card-pack-card" data-pack="Static">
+                <div class="pack-name">⚡ STATIC PACK</div>
+                <div class="pack-cost">25,000 ₽</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Common to Epic electrical & matter multipliers.</div>
+              </div>
+              <div class="card-pack-card" data-pack="Foodaholic">
+                <div class="pack-name">🍕 FOODAHOLIC PACK</div>
+                <div class="pack-cost">75,000 ₽</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">High-carb, massive manual click & speed buffs.</div>
+              </div>
+              <div class="card-pack-card" data-pack="Cosmic">
+                <div class="pack-name">🐉 COSMIC ASTRAL PACK</div>
+                <div class="pack-cost">5 ₹ (Prestige)</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Epic, Legendary, and Astral game-altering powers.</div>
+              </div>
+            </div>
+
+            <h3 class="card-title" style="margin-top: 10px;">COLLECTION INVENTORY</h3>
+            <div class="cards-inventory-grid" id="cardsInventory">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Astronomy & Black Hole Overlay View -->
+      <section class="subsystem-overlay" id="astronomyOverlay">
+        <div class="overlay-shell">
+          <div class="overlay-header">
+            <h2 class="overlay-title">🔭 STELLAR OBSERVATORY & EVENT HORIZON</h2>
+            <p class="overlay-desc">Ignite celestial stars with Transcendence Points (τ) and feed mass to the Supermassive Black Hole to stretch spacetime itself.</p>
+          </div>
+
+          <div class="astronomy-layout">
+            <!-- Left: Black Hole Chamber -->
+            <div class="black-hole-chamber">
+              <div class="black-hole-vortex"></div>
+              <h3 class="bh-title">SUPERMASSIVE BLACK HOLE</h3>
+              <div class="bh-mass" id="blackHoleMass">1.0 M☉</div>
+              <div class="bh-mult" id="bhMultiplier">1.00x Gravitational Lensing</div>
+              <button class="feed-btn" id="feedBlackHoleBtn">Feed 100,000 ₽ Matter</button>
+            </div>
+
+            <!-- Right: Stars Catalogue -->
+            <div class="sidebar-card">
+              <h3 class="card-title">CONSTELLATION STARS</h3>
+              <div id="starsList">
+                <!-- Stars rendered via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Quantum Logic (Minesweeper) Overlay View -->
+      <section class="subsystem-overlay" id="puzzleOverlay">
+        <div class="overlay-shell">
+          <div class="overlay-header">
+            <h2 class="overlay-title">🧩 QUANTUM LOGIC TERMINAL</h2>
+            <p class="overlay-desc">Decode 8x8 quantum sensor arrays. Left-click to inspect safe cells, Right-click to flag anomalies. Clear grids to win permanent Relics!</p>
+          </div>
+
+          <div class="puzzle-board-container">
+            <div style="display: flex; justify-content: space-between; width: 380px; align-items: center;">
+              <span style="font-family: var(--font-mono); font-size: 13px; color: var(--gold-core);">Quantum Relics: <strong id="relicsCount">0</strong> (+50% Global Mult each)</span>
+              <button class="hud-btn" id="resetPuzzleBtn">Reset Grid</button>
+            </div>
+
+            <div class="puzzle-grid" id="puzzleGrid">
+              <!-- 64 Cells rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Void Challenges Overlay View -->
+      <section class="subsystem-overlay" id="challengesOverlay">
+        <div class="overlay-shell">
+          <div class="overlay-header">
+            <h2 class="overlay-title">⚔️ TRIALS OF THE VOID</h2>
+            <p class="overlay-desc">Endure extreme reality distortions and constraints to win permanent game-wide meta perks.</p>
+          </div>
+
+          <div class="challenges-grid" id="challengesList">
+            <!-- Challenges rendered via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Settings & Save Overlay View -->
+      <section class="subsystem-overlay" id="settingsOverlay">
+        <div class="overlay-shell" style="max-width: 600px;">
+          <div class="overlay-header">
+            <h2 class="overlay-title">⚙️ SYSTEM MATRIX SETTINGS</h2>
+            <p class="overlay-desc">Manage game state, cloud backups, and audio synthesis.</p>
+          </div>
+
+          <div class="sidebar-card" style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="hud-btn" id="manualSaveBtn" style="padding: 10px;">💾 Save Game State</button>
+            <button class="hud-btn" id="exportSaveBtn" style="padding: 10px;">📋 Export Save (Base64 to Clipboard)</button>
+            <button class="hud-btn" id="importSaveBtn" style="padding: 10px;">📥 Import Save from String</button>
+            <button class="hud-btn" id="hardResetBtn" style="padding: 10px; color: #ef4444; border-color: #ef4444;">⚠️ HARD RESET ALL PROGRESS</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Prestige Confirmation Modal -->
+    <div class="modal-overlay" id="prestigeModal">
+      <div class="modal-card">
+        <h2 class="modal-title" style="color: var(--gold-core);">THE GREAT PRESTIGE RESET</h2>
+        <p class="modal-body">Collapsing your current matter and automation will transmute your empire into pure dimensional energy.</p>
+        <div class="modal-reward-highlight" id="prestigeGainPreview">+1 ₹</div>
+        <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 20px;">Unlock permanent multipliers, automation auto-buyers, and persistent perks.</p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel-btn" id="closePrestigeBtn">Cancel</button>
+          <button class="modal-btn confirm-btn" id="confirmPrestigeBtn">Trigger Prestige</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transcension Modal -->
+    <div class="modal-overlay" id="transcendModal">
+      <div class="modal-card">
+        <h2 class="modal-title" style="color: #c084fc;">TRANSCENSION THRESHOLD</h2>
+        <p class="modal-body">Reset all Matter, Automation, and Prestige to ascend into cosmic reality.</p>
+        <div class="modal-reward-highlight" id="transcendGainPreview" style="color: #c084fc;">+1 τ</div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel-btn" id="closeTranscendBtn">Cancel</button>
+          <button class="modal-btn confirm-btn" id="confirmTranscendBtn" style="background: #c084fc; border-color: #c084fc;">Transcend Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offline Progress Modal -->
+    <div class="modal-overlay" id="offlineModal">
+      <div class="modal-card">
+        <h2 class="modal-title" style="color: var(--cyan-core);">WELCOME BACK, ASTRAL ARCHITECT!</h2>
+        <p class="modal-body">While you were wandering hyperspace, your automated harvesters remained online:</p>
+        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">Time Away: <span id="offlineTime" style="color: #fff;">0s</span></div>
+        <div class="modal-reward-highlight" id="offlineEarned">+0 ₽</div>
+        <div class="modal-actions">
+          <button class="modal-btn confirm-btn" id="offlineClaimBtn">Claim & Enter Matrix</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts in order -->
+  <script src="decimal.js"></script>
+  <script src="sound-fx.js"></script>
+  <script src="tree-data.js"></script>
+  <script src="game-engine.js"></script>
+  <script src="infinite-canvas.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

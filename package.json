@@ -1,0 +1,12 @@
+{
+  "name": "everything-upgrade-tree",
+  "version": "1.0.0",
+  "description": "Everything Upgrade Tree - Infinite-Canvas Incremental Universe with Multi-Layer Resets, Cards, Mining & Astronomy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
