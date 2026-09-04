@@ -1,5 +1,8 @@
 // Everything Upgrade Tree - Core Game Engine (Canon EUT Edition)
 
+var Decimal = (typeof window !== 'undefined' && window.Decimal) ? window.Decimal : (typeof global !== 'undefined' && global.Decimal) ? global.Decimal : (typeof require !== 'undefined' ? require('./decimal.js').Decimal : null);
+var D = (typeof window !== 'undefined' && window.D) ? window.D : (typeof global !== 'undefined' && global.D) ? global.D : (typeof require !== 'undefined' ? require('./decimal.js').D : function(v, e) { return new Decimal(v, e); });
+
 function getNodeDefs() {
   if (typeof NODE_DEFS !== 'undefined') return NODE_DEFS;
   if (typeof window !== 'undefined' && window.NODE_DEFS) return window.NODE_DEFS;
@@ -94,6 +97,9 @@ class GameEngine {
 
   init() {
     this.loadGame();
+    if (!this.upgrades['node_1']) {
+      this.upgrades['node_1'] = 1;
+    }
     this.recalculateStatsAndRates();
     this.calculateOfflineProgress();
     this.initialized = true;
@@ -601,7 +607,8 @@ class GameEngine {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { GameEngine, getNodeDefs };
-} else {
+}
+if (typeof window !== 'undefined') {
   window.GameEngine = GameEngine;
-  window.gameEngine = new GameEngine();
+  window.gameEngine = window.gameEngine || new GameEngine();
 }

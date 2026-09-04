@@ -1,13 +1,15 @@
 // Everything Upgrade Tree - Master UI Controller & Game Loop (Canon EUT Edition)
-document.addEventListener('DOMContentLoaded', () => {
-  const engine = window.gameEngine;
+function startApp() {
+  const engine = window.gameEngine || new GameEngine();
+  window.gameEngine = engine;
   engine.init();
 
   const canvasContainer = document.getElementById('canvasContainer');
   const canvasRenderer = new InfiniteCanvas(canvasContainer, engine);
 
   // Sound Engine setup
-  const sound = window.soundEngine;
+  const sound = window.soundEngine || new SoundEngine();
+  window.soundEngine = sound;
   document.addEventListener('click', () => {
     sound.ensureContext();
   }, { once: true });
@@ -1167,4 +1169,10 @@ ${pulled.desc}`);
       }
     });
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
+}

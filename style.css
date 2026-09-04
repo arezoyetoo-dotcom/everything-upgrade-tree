@@ -299,6 +299,8 @@ html, body {
    ------------------------------------------------------------- */
 .node-element {
   position: absolute;
+  top: 0;
+  left: 0;
   pointer-events: auto;
   cursor: pointer;
   transform-origin: center center;

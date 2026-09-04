@@ -1,25 +1,33 @@
 // Everything Upgrade Tree - Infinite 2D Canvas & Constellation Renderer (Canon EUT Edition)
+
+function getNodeDefs() {
+  if (typeof window !== 'undefined' && window.NODE_DEFS) return window.NODE_DEFS;
+  if (typeof NODE_DEFS !== 'undefined') return NODE_DEFS;
+  if (typeof global !== 'undefined' && global.NODE_DEFS) return global.NODE_DEFS;
+  return {};
+}
+
 class InfiniteCanvas {
   constructor(containerEl, engine) {
     this.container = containerEl;
     this.engine = engine;
 
-    // Viewport & Camera
-    this.camera = { x: 0, y: 120, zoom: 0.95 };
+    // Viewport & Camera — centered directly on node_1 (0, 0)
+    this.camera = { x: 0, y: 0, zoom: 1.0 };
     this.minZoom = 0.25;
     this.maxZoom = 2.4;
 
     // Canvas & Contexts
     this.bgCanvas = document.getElementById('bgCanvas');
-    this.bgCtx = this.bgCanvas.getContext('2d');
+    this.bgCtx = this.bgCanvas ? this.bgCanvas.getContext('2d') : null;
 
     this.wireCanvas = document.getElementById('wireCanvas');
-    this.wireCtx = this.wireCanvas.getContext('2d');
+    this.wireCtx = this.wireCanvas ? this.wireCanvas.getContext('2d') : null;
 
     this.nodeLayer = document.getElementById('nodeLayer');
     this.floatingLayer = document.getElementById('floatingLayer');
     this.minimapCanvas = document.getElementById('minimapCanvas');
-    this.minimapCtx = this.minimapCanvas.getContext('2d');
+    this.minimapCtx = this.minimapCanvas ? this.minimapCanvas.getContext('2d') : null;
 
     // Pan interaction state
     this.isDragging = false;
@@ -60,14 +68,18 @@ class InfiniteCanvas {
   }
 
   resize() {
-    const w = this.container.clientWidth;
-    const h = this.container.clientHeight;
+    const w = this.container.clientWidth || window.innerWidth || 1200;
+    const h = this.container.clientHeight || (window.innerHeight - 64) || 800;
 
-    this.bgCanvas.width = w;
-    this.bgCanvas.height = h;
+    if (this.bgCanvas) {
+      this.bgCanvas.width = Math.max(300, w);
+      this.bgCanvas.height = Math.max(300, h);
+    }
 
-    this.wireCanvas.width = w;
-    this.wireCanvas.height = h;
+    if (this.wireCanvas) {
+      this.wireCanvas.width = Math.max(300, w);
+      this.wireCanvas.height = Math.max(300, h);
+    }
 
     this.render();
   }
@@ -184,44 +196,47 @@ class InfiniteCanvas {
     });
 
     // Minimap click to pan
-    this.minimapCanvas.addEventListener('click', (e) => {
-      const rect = this.minimapCanvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
+    if (this.minimapCanvas) {
+      this.minimapCanvas.addEventListener('click', (e) => {
+        const rect = this.minimapCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
 
-      // Minimap bounds: x: -700 to +700, y: -200 to 1800
-      const mapW = 1600;
-      const mapH = 2200;
-      const targetWorldX = (mx / this.minimapCanvas.width - 0.5) * mapW;
-      const targetWorldY = (my / this.minimapCanvas.height) * mapH - 200;
+        const mapW = 1600;
+        const mapH = 2200;
+        const targetWorldX = (mx / this.minimapCanvas.width - 0.5) * mapW;
+        const targetWorldY = (my / this.minimapCanvas.height) * mapH - 200;
 
-      this.camera.x = targetWorldX;
-      this.camera.y = targetWorldY;
-      this.render();
-    });
+        this.camera.x = targetWorldX;
+        this.camera.y = targetWorldY;
+        this.render();
+      });
+    }
   }
 
   screenToWorld(sx, sy) {
-    const w = this.container.clientWidth;
-    const h = this.container.clientHeight;
+    const w = this.container.clientWidth || window.innerWidth || 1200;
+    const h = this.container.clientHeight || (window.innerHeight - 64) || 800;
+    const zoom = this.camera.zoom || 1.0;
     return {
-      x: (sx - w / 2) / this.camera.zoom + this.camera.x,
-      y: (sy - h / 2) / this.camera.zoom + this.camera.y
+      x: (sx - w / 2) / zoom + this.camera.x,
+      y: (sy - h / 2) / zoom + this.camera.y
     };
   }
 
   worldToScreen(wx, wy) {
-    const w = this.container.clientWidth;
-    const h = this.container.clientHeight;
+    const w = this.container.clientWidth || window.innerWidth || 1200;
+    const h = this.container.clientHeight || (window.innerHeight - 64) || 800;
+    const zoom = this.camera.zoom || 1.0;
     return {
-      x: (wx - this.camera.x) * this.camera.zoom + w / 2,
-      y: (wy - this.camera.y) * this.camera.zoom + h / 2
+      x: (wx - this.camera.x) * zoom + w / 2,
+      y: (wy - this.camera.y) * zoom + h / 2
     };
   }
 
   centerCamera() {
     this.camera.x = 0;
-    this.camera.y = 120;
+    this.camera.y = 0;
     this.camera.zoom = 1.0;
     this.render();
   }
@@ -259,8 +274,15 @@ class InfiniteCanvas {
   }
 
   triggerSingularityClick() {
-    const sDef = NODE_DEFS['node_1'];
+    const defs = getNodeDefs();
+    const sDef = defs['node_1'] || { x: 0, y: 0 };
     const sPos = this.worldToScreen(sDef.x, sDef.y);
+
+    // If node_1 is not owned, auto-unlock it on click!
+    if (!this.engine.upgrades['node_1']) {
+      this.engine.buyNode('node_1');
+    }
+
     const res = this.engine.clickSingularity();
 
     if (window.soundEngine) {
@@ -281,22 +303,39 @@ class InfiniteCanvas {
   }
 
   // -------------------------------------------------------------
-  // Main Rendering Loop
+  // Node Discovery / Visibility Filter
+  // -------------------------------------------------------------
+  isNodeDiscovered(nodeId) {
+    if (this.engine.isNodeUnlocked(nodeId)) return true;
+    const defs = getNodeDefs();
+    const def = defs[nodeId];
+    if (!def) return false;
+    const req = def.requires || def.prerequisites;
+    if (!req) return true;
+    const parentIds = Array.isArray(req) ? req : Object.keys(req);
+    if (parentIds.length === 0) return true;
+    // Discovered if ANY prerequisite parent is unlocked or purchased
+    return parentIds.some(pId => (this.engine.upgrades[pId] || 0) > 0 || this.engine.isNodeUnlocked(pId));
+  }
+
+  // -------------------------------------------------------------
+  // Update Loop
   // -------------------------------------------------------------
   update(dt) {
-    // Keyboard Pan smooth inertia
-    const panSpeed = 700 * dt / this.camera.zoom;
+    // Keyboard camera panning
+    const panSpeed = (360 / this.camera.zoom) * dt;
     if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.camera.x -= panSpeed;
     if (this.keys['KeyD'] || this.keys['ArrowRight']) this.camera.x += panSpeed;
     if (this.keys['KeyW'] || this.keys['ArrowUp']) this.camera.y -= panSpeed;
     if (this.keys['KeyS'] || this.keys['ArrowDown']) this.camera.y += panSpeed;
 
-    // Update particles
+    // Particle updates
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.x += p.vx;
       p.y += p.vy;
       p.alpha -= dt * 1.2;
+      p.scale = Math.max(0.6, p.scale - dt * 0.4);
       if (p.alpha <= 0) {
         this.particles.splice(i, 1);
       }
@@ -315,14 +354,16 @@ class InfiniteCanvas {
 
   // 1. Cosmic Parallax Background
   renderBackground() {
-    const w = this.bgCanvas.width;
-    const h = this.bgCanvas.height;
+    if (!this.bgCanvas || !this.bgCtx) return;
+    const w = this.bgCanvas.width || 1200;
+    const h = this.bgCanvas.height || 800;
     const ctx = this.bgCtx;
 
     ctx.clearRect(0, 0, w, h);
 
-    // Deep void space gradient
-    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, Math.max(w, h));
+    // Deep void space gradient with safe radius
+    const maxDim = Math.max(100, Math.max(w, h));
+    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, maxDim);
     bgGrad.addColorStop(0, '#0a0812');
     bgGrad.addColorStop(0.6, '#060509');
     bgGrad.addColorStop(1, '#020204');
@@ -346,13 +387,13 @@ class InfiniteCanvas {
     }
     ctx.restore();
 
-    // Cosmic Grid lines
+    // Cosmic Grid lines with safe step
     ctx.save();
     ctx.strokeStyle = 'rgba(0, 240, 255, 0.035)';
     ctx.lineWidth = 1;
-    const gridSize = 100 * this.camera.zoom;
-    const offsetX = (w / 2 - this.camera.x * this.camera.zoom) % gridSize;
-    const offsetY = (h / 2 - this.camera.y * this.camera.zoom) % gridSize;
+    const gridSize = Math.max(20, 100 * (this.camera.zoom || 1));
+    const offsetX = ((w / 2 - this.camera.x * this.camera.zoom) % gridSize + gridSize) % gridSize;
+    const offsetY = ((h / 2 - this.camera.y * this.camera.zoom) % gridSize + gridSize) % gridSize;
 
     for (let x = offsetX; x < w; x += gridSize) {
       ctx.beginPath();
@@ -370,28 +411,32 @@ class InfiniteCanvas {
     // Origin crosshair (#1 Generic beginning)
     const origin = this.worldToScreen(0, 0);
     ctx.strokeStyle = 'rgba(255, 183, 3, 0.2)';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(origin.x, origin.y, 16 * this.camera.zoom, 0, Math.PI * 2);
+    ctx.arc(origin.x, origin.y, 45 * this.camera.zoom, 0, Math.PI * 2);
     ctx.stroke();
+
     ctx.restore();
   }
 
-  // 2. Thick Glowing Energy Connection Wires
+  // 2. Constellation Connecting Lines & Pulses
   renderConnections() {
-    const w = this.wireCanvas.width;
-    const h = this.wireCanvas.height;
+    if (!this.wireCanvas || !this.wireCtx) return;
+    const w = this.wireCanvas.width || 1200;
+    const h = this.wireCanvas.height || 800;
     const ctx = this.wireCtx;
+    const defs = getNodeDefs();
 
     ctx.clearRect(0, 0, w, h);
 
-    const unlockedNodes = Object.keys(NODE_DEFS).filter(id => this.engine.isNodeUnlocked(id));
+    const visibleNodeIds = Object.keys(defs).filter(id => this.isNodeDiscovered(id));
 
-    unlockedNodes.forEach(childId => {
-      const childDef = NODE_DEFS[childId];
-      if (!childDef.requires) return;
+    visibleNodeIds.forEach(childId => {
+      const childDef = defs[childId];
+      if (!childDef || !childDef.requires) return;
 
       Object.keys(childDef.requires).forEach(parentId => {
-        const parentDef = NODE_DEFS[parentId];
+        const parentDef = defs[parentId];
         if (!parentDef) return;
 
         const p1 = this.worldToScreen(parentDef.x, parentDef.y);
@@ -399,9 +444,11 @@ class InfiniteCanvas {
 
         const childLevel = this.engine.upgrades[childId] || 0;
         const isChildActive = childLevel > 0;
+        const isChildUnlocked = this.engine.isNodeUnlocked(childId);
 
         ctx.save();
         if (isChildActive) {
+          // Fully active wire
           ctx.strokeStyle = '#00f0ff';
           ctx.lineWidth = Math.max(2.5, 3.5 * this.camera.zoom);
           ctx.shadowColor = 'rgba(0, 240, 255, 0.75)';
@@ -412,7 +459,7 @@ class InfiniteCanvas {
           ctx.lineTo(p2.x, p2.y);
           ctx.stroke();
 
-          // Animated energy pulse particle flowing along connection wire
+          // Animated energy pulse particle
           const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
           if (dist > 10) {
             const progress = (this.linePulseTime % 1.0);
@@ -426,10 +473,21 @@ class InfiniteCanvas {
             ctx.arc(px, py, 3.5 * this.camera.zoom, 0, Math.PI * 2);
             ctx.fill();
           }
+        } else if (isChildUnlocked) {
+          // Unlocked wire
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
+          ctx.lineWidth = Math.max(1.5, 2.2 * this.camera.zoom);
+          ctx.setLineDash([6 * this.camera.zoom, 4 * this.camera.zoom]);
+
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
         } else {
-          ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
-          ctx.lineWidth = Math.max(1.5, 2 * this.camera.zoom);
-          ctx.setLineDash([8 * this.camera.zoom, 6 * this.camera.zoom]);
+          // Discovered but locked wire
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+          ctx.lineWidth = Math.max(1.0, 1.5 * this.camera.zoom);
+          ctx.setLineDash([4 * this.camera.zoom, 6 * this.camera.zoom]);
 
           ctx.beginPath();
           ctx.moveTo(p1.x, p1.y);
@@ -443,15 +501,17 @@ class InfiniteCanvas {
 
   // 3. Physical DOM Nodes
   renderNodes() {
+    if (!this.nodeLayer) return;
     const existingNodeEls = this.nodeLayer.querySelectorAll('.node-element');
     const existingMap = new Map();
     existingNodeEls.forEach(el => existingMap.set(el.dataset.node, el));
+    const defs = getNodeDefs();
 
-    Object.keys(NODE_DEFS).forEach(nodeId => {
-      const def = NODE_DEFS[nodeId];
-      const isUnlocked = this.engine.isNodeUnlocked(nodeId);
+    Object.keys(defs).forEach(nodeId => {
+      const def = defs[nodeId];
+      const isVisible = this.isNodeDiscovered(nodeId);
 
-      if (!isUnlocked) {
+      if (!isVisible) {
         if (existingMap.has(nodeId)) {
           existingMap.get(nodeId).remove();
         }
@@ -462,7 +522,8 @@ class InfiniteCanvas {
       const level = this.engine.upgrades[nodeId] || 0;
       const maxLvl = this.engine.getNodeMaxLevel(nodeId);
       const isMaxed = maxLvl > 0 && level >= maxLvl;
-      const canAfford = this.engine.canAffordNode(nodeId);
+      const isUnlocked = this.engine.isNodeUnlocked(nodeId);
+      const canAfford = isUnlocked && this.engine.canAffordNode(nodeId);
 
       let el = existingMap.get(nodeId);
       if (!el) {
@@ -475,6 +536,7 @@ class InfiniteCanvas {
       el.classList.toggle('node-affordable', canAfford && !isMaxed);
       el.classList.toggle('node-maxed', isMaxed);
       el.classList.toggle('node-locked', !canAfford && !isMaxed);
+      el.classList.toggle('node-discovered-locked', !isUnlocked);
       el.classList.toggle('node-singularity', !!def.isManualClicker);
 
       // Update Level Display
@@ -486,16 +548,22 @@ class InfiniteCanvas {
           lvlBadge.textContent = 'MAX';
         } else if (maxLvl > 1) {
           lvlBadge.textContent = `${level}/${maxLvl}`;
+        } else if (level > 0) {
+          lvlBadge.textContent = 'ACTIVE';
+        } else if (isUnlocked) {
+          lvlBadge.textContent = 'UNLOCKED';
         } else {
-          lvlBadge.textContent = level > 0 ? 'ACTIVE' : 'LOCKED';
+          lvlBadge.textContent = 'LOCKED';
         }
       }
 
       // Update Cost Display
       const costBadge = el.querySelector('.node-cost-text');
       if (costBadge) {
-        if (isMaxed || def.isManualClicker) {
-          costBadge.textContent = isMaxed ? 'OWNED' : 'FREE';
+        if (isMaxed) {
+          costBadge.textContent = 'OWNED';
+        } else if (def.isManualClicker) {
+          costBadge.textContent = 'FREE';
         } else {
           const cost = this.engine.getNodeCost(nodeId);
           const symbol = this.getCurrencySymbol(def.currency);
@@ -537,47 +605,52 @@ class InfiniteCanvas {
 
     el.addEventListener('click', (e) => {
       e.stopPropagation();
+      const curLvl = this.engine.upgrades[nodeId] || 0;
+      const maxLvl = this.engine.getNodeMaxLevel(nodeId);
+
+      // Core singularity clicker (#1 Generic beginning)
       if (def.isManualClicker) {
+        if (!curLvl && this.engine.canAffordNode(nodeId)) {
+          this.engine.buyNode(nodeId);
+        }
         this.triggerSingularityClick();
-      } else {
-        const curLvl = this.engine.upgrades[nodeId] || 0;
-        const maxLvl = this.engine.getNodeMaxLevel(nodeId);
+        return;
+      }
 
-        // If already purchased / maxed, clicking opens interactive center
-        if (maxLvl > 0 && curLvl >= maxLvl) {
-          if (nodeId === 'node_0d' && window.openDonationModal) return window.openDonationModal();
-          if (nodeId === 'node_9' && window.openBoomboxModal) return window.openBoomboxModal();
-          if (nodeId === 'node_16' && window.openLevelingModal) return window.openLevelingModal();
-          if (nodeId === 'node_18' && window.openBonusModal) return window.openBonusModal();
-          if (nodeId === 'node_20' && window.openLeaderboardModal) return window.openLeaderboardModal();
-          if (nodeId === 'node_40' && window.openHardcoreModal) return window.openHardcoreModal();
+      // If already purchased / maxed, clicking opens interactive center
+      if (maxLvl > 0 && curLvl >= maxLvl) {
+        if (nodeId === 'node_0d' && window.openDonationModal) return window.openDonationModal();
+        if (nodeId === 'node_9' && window.openBoomboxModal) return window.openBoomboxModal();
+        if (nodeId === 'node_16' && window.openLevelingModal) return window.openLevelingModal();
+        if (nodeId === 'node_18' && window.openBonusModal) return window.openBonusModal();
+        if (nodeId === 'node_20' && window.openLeaderboardModal) return window.openLeaderboardModal();
+        if (nodeId === 'node_40' && window.openHardcoreModal) return window.openHardcoreModal();
+      }
+
+      const bought = this.engine.buyNode(nodeId);
+      if (bought) {
+        if (window.soundEngine) {
+          const newLvl = this.engine.upgrades[nodeId] || 0;
+          const isNowMaxed = maxLvl > 0 && newLvl >= maxLvl;
+          if (isNowMaxed) window.soundEngine.playMaxed();
+          else window.soundEngine.playBuy();
         }
 
-        const bought = this.engine.buyNode(nodeId);
-        if (bought) {
-          if (window.soundEngine) {
-            const newLvl = this.engine.upgrades[nodeId] || 0;
-            const isNowMaxed = maxLvl > 0 && newLvl >= maxLvl;
-            if (isNowMaxed) window.soundEngine.playMaxed();
-            else window.soundEngine.playBuy();
-          }
+        el.classList.add('node-purchased-pulse');
+        setTimeout(() => el.classList.remove('node-purchased-pulse'), 250);
 
-          el.classList.add('node-purchased-pulse');
-          setTimeout(() => el.classList.remove('node-purchased-pulse'), 250);
+        const sPos = this.worldToScreen(def.x, def.y);
+        this.spawnFloatingText('UNLOCKED! ✦', sPos.x, sPos.y, false);
 
-          const sPos = this.worldToScreen(def.x, def.y);
-          this.spawnFloatingText('UNLOCKED! ✦', sPos.x, sPos.y, false);
+        this.render();
 
-          this.render();
-
-          // Auto-launch interactive modal upon purchase
-          if (nodeId === 'node_0d' && window.openDonationModal) setTimeout(window.openDonationModal, 300);
-          if (nodeId === 'node_9' && window.openBoomboxModal) setTimeout(window.openBoomboxModal, 300);
-          if (nodeId === 'node_16' && window.openLevelingModal) setTimeout(window.openLevelingModal, 300);
-          if (nodeId === 'node_18' && window.openBonusModal) setTimeout(window.openBonusModal, 300);
-          if (nodeId === 'node_20' && window.openLeaderboardModal) setTimeout(window.openLeaderboardModal, 300);
-          if (nodeId === 'node_40' && window.openHardcoreModal) setTimeout(window.openHardcoreModal, 300);
-        }
+        // Auto-launch interactive modal upon purchase
+        if (nodeId === 'node_0d' && window.openDonationModal) setTimeout(window.openDonationModal, 300);
+        if (nodeId === 'node_9' && window.openBoomboxModal) setTimeout(window.openBoomboxModal, 300);
+        if (nodeId === 'node_16' && window.openLevelingModal) setTimeout(window.openLevelingModal, 300);
+        if (nodeId === 'node_18' && window.openBonusModal) setTimeout(window.openBonusModal, 300);
+        if (nodeId === 'node_20' && window.openLeaderboardModal) setTimeout(window.openLeaderboardModal, 300);
+        if (nodeId === 'node_40' && window.openHardcoreModal) setTimeout(window.openHardcoreModal, 300);
       }
     });
 
@@ -594,6 +667,7 @@ class InfiniteCanvas {
 
   // 4. Floating Text Numbers
   renderFloatingText() {
+    if (!this.floatingLayer) return;
     this.floatingLayer.innerHTML = '';
     this.particles.forEach(p => {
       const span = document.createElement('div');
@@ -609,9 +683,11 @@ class InfiniteCanvas {
 
   // 5. Constellation Radar Minimap
   renderMinimap() {
+    if (!this.minimapCanvas || !this.minimapCtx) return;
     const ctx = this.minimapCtx;
     const w = this.minimapCanvas.width;
     const h = this.minimapCanvas.height;
+    const defs = getNodeDefs();
 
     ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = '#08070d';
@@ -627,9 +703,9 @@ class InfiniteCanvas {
     ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
     ctx.stroke();
 
-    Object.keys(NODE_DEFS).forEach(id => {
-      if (!this.engine.isNodeUnlocked(id)) return;
-      const def = NODE_DEFS[id];
+    Object.keys(defs).forEach(id => {
+      if (!this.isNodeDiscovered(id)) return;
+      const def = defs[id];
 
       const mx = (def.x / mapW + 0.5) * w;
       const my = ((def.y + 200) / mapH) * h;
@@ -641,8 +717,8 @@ class InfiniteCanvas {
     });
 
     // Viewport camera frustum box
-    const cw = (this.container.clientWidth / this.camera.zoom) * scaleX;
-    const ch = (this.container.clientHeight / this.camera.zoom) * scaleY;
+    const cw = ((this.container.clientWidth || 1200) / this.camera.zoom) * scaleX;
+    const ch = ((this.container.clientHeight || 800) / this.camera.zoom) * scaleY;
     const cx = (this.camera.x / mapW + 0.5) * w - cw / 2;
     const cy = ((this.camera.y + 200) / mapH) * h - ch / 2;
 
